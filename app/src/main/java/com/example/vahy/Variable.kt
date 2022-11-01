@@ -1,11 +1,15 @@
 package com.example.vahy
 
-import android.graphics.Bitmap
+class Variable(private var variable : String,
+               private var value : Double) : Polynom(){
 
-open class Variable(private val value : Int,
-                    private var collidable : Boolean = false,
-                    private var dragable : Boolean = true)
-    : EquationObject(collidable, dragable)  {
+    override fun evaluate(): Double = value
 
-    override fun evaluate() : Int = value
+
+    override fun valueAt(v: String): Double? =
+        if (v == variable ) value
+        else null
+
+
+    override fun toString(): String = "$variable"
 }
