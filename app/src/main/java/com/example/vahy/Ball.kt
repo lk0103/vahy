@@ -5,7 +5,7 @@ import android.graphics.Bitmap
 class Ball(private val value : Int,
            private var collidable : Boolean = false,
            private var dragable : Boolean = true)
-    : Variable(value, collidable, dragable) {
+    : ScaleVariable(value, collidable, dragable) {
 
     init {
         //calculate x, y, z, width, height, image

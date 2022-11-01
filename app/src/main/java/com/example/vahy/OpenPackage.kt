@@ -1,7 +1,5 @@
 package com.example.vahy
 
-import android.graphics.Bitmap
-
 class OpenPackage(private var collidable : Boolean = true)
     : ScreenObject(collidable) {
 
@@ -12,7 +10,7 @@ class OpenPackage(private var collidable : Boolean = true)
     }
 
     fun addObjectIn(obj : EquationObject){
-        if (obj is Value || obj is Variable)
+        if (obj is ScaleValue || obj is ScaleVariable)
             insideObject.add(obj)
     }
 }

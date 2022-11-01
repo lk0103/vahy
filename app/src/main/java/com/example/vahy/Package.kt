@@ -1,7 +1,5 @@
 package com.example.vahy
 
-import android.graphics.Bitmap
-
 
 class Package(private var collidable : Boolean = false,
               private var dragable : Boolean = true)
@@ -17,7 +15,7 @@ class Package(private var collidable : Boolean = false,
     }
 
     fun addObjectIn(obj : EquationObject){
-        if (obj is Value || obj is Variable)
+        if (obj is ScaleValue || obj is ScaleVariable)
             insideObject.add(obj)
     }
 
