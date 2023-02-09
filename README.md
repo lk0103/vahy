@@ -1,1 +1,1 @@
-# bakalarska praca herneho metody - vahy
+# bakalarska práca hejného metódy - váhy
