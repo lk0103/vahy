@@ -1,6 +1,6 @@
 package com.example.bakalarka.objects
 
-open class ScaleVariable(private val value : Int,
+open class ScaleVariable(protected val value : Int,
                          touchable : Boolean = false,
                          draggable : Boolean = true)
     : EquationObject(touchable, draggable)  {

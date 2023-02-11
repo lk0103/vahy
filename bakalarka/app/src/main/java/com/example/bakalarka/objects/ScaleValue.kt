@@ -1,11 +1,10 @@
 package com.example.bakalarka.objects
 
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 
-open class ScaleValue(private val value : Int,
+open class ScaleValue(protected var value : Int,
                       touchable : Boolean = false,
                       draggable : Boolean = true)
     : EquationObject(touchable, draggable)  {
@@ -31,11 +30,11 @@ open class ScaleValue(private val value : Int,
 
     override fun evaluate() : Int = value
 
-    fun doubleClick(){
-
+    open fun increment(){
+        value++
     }
 
-    fun longClick(){
-
+    open fun decrement(){
+        value--
     }
 }

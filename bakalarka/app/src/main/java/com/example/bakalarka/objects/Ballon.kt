@@ -10,7 +10,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.example.bakalarka.R
 
-class Ballon(private val context: Context, private val value : Int,
+class Ballon(private val context: Context, value : Int,
              touchable : Boolean = false,
              draggable : Boolean = true)
     : ScaleValue(value, touchable, draggable) {
@@ -61,4 +61,10 @@ class Ballon(private val context: Context, private val value : Int,
         setParametersOfCopy(Ballon(context, value, touchable, draggable))
 
     override fun evaluate(): Int = value
+
+    override fun increment(){
+        if (value < -1)
+            value++
+    }
+
 }

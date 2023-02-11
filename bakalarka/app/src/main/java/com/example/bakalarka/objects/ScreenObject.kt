@@ -42,6 +42,10 @@ open class ScreenObject(var touchable : Boolean){
         return null
     }
 
+    open fun returnClickedObject(x1 : Int, y1 : Int) : EquationObject?{
+        return null
+    }
+
     @JvmName("setZ1")
     fun setZ(newZ : Int) {
         z = newZ

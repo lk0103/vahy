@@ -2,12 +2,13 @@ package com.example.bakalarka.objects
 
 import android.graphics.*
 import com.example.vahy.objects.ScreenObject
+import kotlin.math.ceil
 
 class ObjectsToChooseFrom (private var insideObject :
                            MutableList<EquationObject>)
     : ScreenObject(false) {
     val collums = 2
-    val rows = Math.ceil(insideObject.size.toDouble() / collums.toDouble()).toInt()
+    var rows = Math.ceil(insideObject.size.toDouble() / collums.toDouble()).toInt()
 
     init {
         z = 2
@@ -17,12 +18,22 @@ class ObjectsToChooseFrom (private var insideObject :
         y = 1800
     }
 
+    fun setInsideObject(objects : MutableList<EquationObject>){
+        insideObject = objects
+        rows = ceil(insideObject.size.toDouble() / collums.toDouble()).toInt()
+        changeSizeInsideObj()
+    }
+
     override fun sizeChanged(w : Int, h : Int, xStart : Int, yStart : Int){
         width = w
         height = h - 2 * (h / 40)
         x = xStart
-        y = h / 40
+        y = yStart
 
+        changeSizeInsideObj()
+    }
+
+    private fun changeSizeInsideObj() {
         val widthBox = width / collums
         val heightBox = height / rows
         val widthMargins = widthBox / 20
@@ -32,11 +43,15 @@ class ObjectsToChooseFrom (private var insideObject :
         var row = 0
         var col = 0
         (0 until insideObject.size).forEach { i ->
-            val xMiddle = x + widthBox * col + widthBox / 2
+            var xMiddle = x + widthBox * col + widthBox / 2
             val yMiddle = y + heightBox * row + heightBox / 2
+            if (row == rows - 1 && insideObject.size % collums != 0){
+                val wBox = width / (insideObject.size % collums)
+                xMiddle = x + wBox * col + wBox / 2
+            }
             insideObject[i].sizeChanged(widthObj, heightObj, xMiddle, yMiddle)
             col++
-            if (col >= collums){
+            if (col >= collums) {
                 col = 0
                 row++
             }
@@ -54,7 +69,6 @@ class ObjectsToChooseFrom (private var insideObject :
     private fun drawFrame(paint: Paint, canvas: Canvas) {
         paint.color = Color.BLACK
         paint.strokeWidth = 3F
-
         canvas.drawRect(
             Rect(
                 x, y, x + width, y + height
@@ -64,7 +78,6 @@ class ObjectsToChooseFrom (private var insideObject :
 
         paint.color = Color.WHITE
         paint.strokeWidth = 0F
-
         canvas.drawRect(
             Rect(
                 x + 3, y + 3, x + width - 3, y + height - 3
@@ -76,4 +89,8 @@ class ObjectsToChooseFrom (private var insideObject :
     override fun returnDraggedObject(x1: Int, y1: Int): EquationObject? =
         insideObject.filter { it.onTouch(x1, y1)}.firstOrNull()?.makeCopy()
 
+    override fun returnClickedObject(x1: Int, y1: Int): EquationObject? =
+        insideObject.filter { it.onTouch(x1, y1)}.firstOrNull()
+
+    fun getInsideObjects() : MutableList<EquationObject> = insideObject
 }

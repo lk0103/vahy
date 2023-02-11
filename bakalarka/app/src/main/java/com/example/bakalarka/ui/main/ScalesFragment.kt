@@ -12,6 +12,7 @@ import com.example.bakalarka.R
 import com.example.bakalarka.BR.*
 import com.example.bakalarka.MainActivity
 import com.example.bakalarka.databinding.FragmentScalesBinding
+import com.example.bakalarka.objects.*
 import kotlinx.android.synthetic.main.fragment_scales.*
 
 
@@ -51,7 +52,15 @@ class ScalesFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProvider(this).get(ScalesViewModel::class.java)
         //binding.setVariable(myViewModel, viewModel)
-
+        //ScalesView.setVisibilityObjectToChooseFrom(false)
+//        ScalesView.setObjectsToChooseFrom(mutableListOf(Ball(mainactivity.applicationContext, 1),
+//            Cube(mainactivity.applicationContext, 1),
+//            Cylinder(mainactivity.applicationContext, 1),
+//            Ballon(mainactivity.applicationContext, -1),
+//            Package(mainactivity.applicationContext),
+//            Weight(mainactivity.applicationContext, 1)
+//
+//        ))
     }
 
 }

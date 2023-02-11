@@ -6,7 +6,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.example.bakalarka.R
 
-class Weight(private val context: Context, private val value : Int,
+class Weight(private val context: Context, value : Int,
              touchable : Boolean = false,
              draggable : Boolean = true)
     : ScaleValue(value, touchable, draggable)  {
@@ -41,5 +41,10 @@ class Weight(private val context: Context, private val value : Int,
     }
 
     override fun evaluate(): Int = value
+
+    override fun decrement(){
+        if (value > 1)
+            value--
+    }
 
 }

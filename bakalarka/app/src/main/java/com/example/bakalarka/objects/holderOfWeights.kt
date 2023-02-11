@@ -5,12 +5,13 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
+import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.example.bakalarka.R
 import com.example.vahy.objects.ScreenObject
 
-class holderOfWeights(context: Context,
+class HolderOfWeights(context: Context,
                       private val left : Boolean,
                       touchable : Boolean = true) :
     ScreenObject(touchable){
@@ -87,6 +88,8 @@ class holderOfWeights(context: Context,
 
     fun addEquationObjIntoHolder(obj : EquationObject){
         var box = findBoxByObjType(obj)
+        if (box?.isFull() ?: false) box = null
+
         if (box == null){
             try {
                 box = createBoxByObjType(obj)
@@ -95,15 +98,11 @@ class holderOfWeights(context: Context,
                 return
             }catch (e : java.lang.Exception){
                 removeBox(box)
-                return
+                throw java.lang.Exception("maximum capacity of boxes")
             }
         }
 
-        try{
-            box.addObject(obj)
-        }catch (e : java.lang.Exception){
-            return
-        }
+        box.addObject(obj)
     }
 
     private fun removeBox(box: EquationObjectBox?) {
@@ -120,12 +119,18 @@ class holderOfWeights(context: Context,
     }
 
     private fun findBoxByObjType(obj: EquationObject) : EquationObjectBox? =
-        if (obj is Ball) equationObjectBoxes.filter { it is BallBox }.firstOrNull()
-        else if (obj is Cube) equationObjectBoxes.filter { it is CubeBox }.firstOrNull()
-        else if (obj is Cylinder) equationObjectBoxes.filter { it is CylinderBox }.firstOrNull()
-        else if (obj is Weight) equationObjectBoxes.filter { it is WeightBox }.firstOrNull()
-        else if (obj is Ballon) equationObjectBoxes.filter { it is BallonBox }.firstOrNull()
-        else if (obj is Package) equationObjectBoxes.filter { it is PackageBox }.firstOrNull()
+        if (obj is Ball) equationObjectBoxes.filter { it is BallBox }
+                            .sortedBy { it.insideObject.size }.firstOrNull()
+        else if (obj is Cube) equationObjectBoxes.filter { it is CubeBox }
+                                .sortedBy { it.insideObject.size }.firstOrNull()
+        else if (obj is Cylinder) equationObjectBoxes.filter { it is CylinderBox }
+                                    .sortedBy { it.insideObject.size }.firstOrNull()
+        else if (obj is Weight) equationObjectBoxes.filter { it is WeightBox }
+                                    .sortedBy { it.insideObject.size }.firstOrNull()
+        else if (obj is Ballon) equationObjectBoxes.filter { it is BallonBox }
+                                    .sortedBy { it.insideObject.size }.firstOrNull()
+        else if (obj is Package) equationObjectBoxes.filter { it is PackageBox }
+                                    .sortedBy { it.insideObject.size }.firstOrNull()
         else null
 
     private fun createBoxByObjType(obj: EquationObject) : EquationObjectBox =
@@ -143,6 +148,15 @@ class holderOfWeights(context: Context,
             draggedObj.add(box.returnDraggedObject(x1, y1))
         }
         return draggedObj.filter { it != null }.sortedBy { it?.z }.firstOrNull()
+    }
+
+    override fun returnClickedObject(x1: Int, y1: Int): EquationObject? {
+        val clickedObj = mutableListOf<EquationObject?>()
+        for (box in equationObjectBoxes){
+            clickedObj.add(box.returnClickedObject(x1, y1))
+        }
+        Log.i("gesture", "clickedObjects holder " + clickedObj.toString())
+        return clickedObj.filter { it != null }.sortedBy { it?.z }.firstOrNull()
     }
 
     fun removeDraggedObject(delete : Boolean = false){

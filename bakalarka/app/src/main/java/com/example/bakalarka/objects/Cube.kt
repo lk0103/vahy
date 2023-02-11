@@ -6,7 +6,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.example.bakalarka.R
 
-class Cube(private val context: Context, private val value : Int,
+class Cube(private val context: Context, value : Int,
            touchable : Boolean = false,
            draggable : Boolean = true)
     : ScaleVariable(value, touchable, draggable) {

@@ -66,6 +66,9 @@ open class EquationObjectBox ()
         return draggedObj?.makeCopy()
     }
 
+    override fun returnClickedObject(x1: Int, y1: Int): EquationObject? =
+        insideObject.filter { it.onTouch(x1, y1) }.sortedBy { it.z }.firstOrNull()
+
     fun removeDraggedObject(delete : Boolean = false){
         if (draggedObj == null) return
 
@@ -78,5 +81,7 @@ open class EquationObjectBox ()
 
     open fun returnListInsideVariableTypes() : List<EquationObject> =
         insideObject.filter { it is ScaleVariable }.toList()
+
+    fun isFull() : Boolean = insideObject.size >= maxNumberOfObj
 
 }
