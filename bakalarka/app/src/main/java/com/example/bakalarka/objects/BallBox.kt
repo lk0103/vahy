@@ -1,17 +1,10 @@
 package com.example.bakalarka.objects
 
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Rect
-import android.util.Log
-import com.example.vahy.objects.ScreenObject
-
 class BallBox: EquationObjectBox() {
 
     init {
         maxNumberOfObj = 6
-        cols = 3.5
+        cols = 3.0
         rows = 3.0
     }
 

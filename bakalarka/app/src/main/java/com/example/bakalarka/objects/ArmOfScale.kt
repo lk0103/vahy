@@ -2,7 +2,6 @@ package com.example.bakalarka.objects
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.example.bakalarka.R

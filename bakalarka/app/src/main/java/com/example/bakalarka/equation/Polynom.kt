@@ -4,27 +4,15 @@ abstract class Polynom {
     abstract fun valueAt(variable : String) : Double?
     abstract fun evaluate() : Double
 
-    fun removeVariable() {
+    //odstrani sa x aj ked sa nezhoduje hodnota v
+    open fun removeVariable(name: String, v : Double) : Polynom? = null
 
-    }
+    //prida sa x aj ked sa nezhoduje hodnota v
+    open fun addVariable(name: String, v : Double) : Polynom? = null
 
-    fun addVariable() {
+    open fun removeConstant(value : Double) : Polynom? = null
 
-    }
+    open fun addConstant(value : Double) : Polynom? = null
 
-    fun removeConstant(value : Double) {
-
-    }
-
-    fun addConstant(value : Double ) {
-
-    }
-
-    fun substractFromConstant(fromValue: Double) {
-
-    }
-
-    fun addToConstant(toValue: Double) {
-
-    }
+    open fun addToConstant(fromValue: Double, value : Double) : Polynom? = null
 }

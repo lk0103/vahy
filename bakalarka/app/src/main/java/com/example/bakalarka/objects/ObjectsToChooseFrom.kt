@@ -26,7 +26,7 @@ class ObjectsToChooseFrom (private var insideObject :
 
     override fun sizeChanged(w : Int, h : Int, xStart : Int, yStart : Int){
         width = w
-        height = h - 2 * (h / 40)
+        height = h
         x = xStart
         y = yStart
 
@@ -93,4 +93,7 @@ class ObjectsToChooseFrom (private var insideObject :
         insideObject.filter { it.onTouch(x1, y1)}.firstOrNull()
 
     fun getInsideObjects() : MutableList<EquationObject> = insideObject
+
+    override fun returnPackages() : MutableList<Package> =
+        insideObject.flatMap { it.returnPackages()}.toMutableList()
 }

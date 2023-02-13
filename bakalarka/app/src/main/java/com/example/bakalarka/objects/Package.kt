@@ -48,23 +48,19 @@ class Package(private val context: Context, touchable : Boolean = false,
 
     fun possibleToAddVariable(obj : EquationObject) : Boolean{
         var count = 0
-        if (insideObject.any { it is Ball }) {
-            if (obj is Ball)
-                return true
-            count++
-        }
-        if (insideObject.any { it is Cube }) {
-            if (obj is Cube)
-                return true
-            count++
-        }
-        if (insideObject.any { it is Cylinder }) {
-            if (obj is Cylinder)
-                return true
-            count++
+        val typeVariableClasses = listOf(Ball(context, 0), Cube(context, 0), Cylinder(context, 0))
+        typeVariableClasses.forEach { type ->
+            if (insideObject.any { it::class == type::class }) {
+                if (obj::class == type::class )
+                    return true
+                count++
+            }
         }
         return count < maxNumberOfVariableTypes
     }
+
+    override fun returnPackages() : MutableList<Package> = mutableListOf(this)
+
 
     override fun evaluate(): Int =
         insideObject.sumOf { it.evaluate() }

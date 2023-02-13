@@ -46,6 +46,8 @@ open class ScreenObject(var touchable : Boolean){
         return null
     }
 
+    open fun returnPackages() : MutableList<com.example.bakalarka.objects.Package> = mutableListOf()
+
     @JvmName("setZ1")
     fun setZ(newZ : Int) {
         z = newZ

@@ -44,5 +44,6 @@ class PackageBox: EquationObjectBox() {
         insideObject.flatMap { (it as Package).insideObject }
             .filter { it is ScaleVariable}.toList()
 
-
+    override fun returnPackages() : MutableList<Package> =
+        insideObject.flatMap { it.returnPackages()}.toMutableList()
 }
