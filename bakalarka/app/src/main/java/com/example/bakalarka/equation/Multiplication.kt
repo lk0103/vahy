@@ -1,5 +1,6 @@
 package com.example.vahy.equation
 
+import android.util.Log
 import com.example.bakalarka.equation.Bracket
 
 //lava strana bude variable, constant, bracked a prava strana bude nasobok
@@ -11,69 +12,72 @@ class Multiplication(private var polynom : Polynom,
 
     fun getPolynom() : Polynom = polynom
 
-    override fun evaluate(): Double =
-        polynom.evaluate() * multiple.evaluate()
+    override fun evaluate(variables : Map<String, Double>): Double =
+        polynom.evaluate(variables) * multiple.evaluate(variables)
 
+    override fun findAllVariables(): Set<String> = polynom.findAllVariables()
 
-    override fun valueAt(v: String): Double? {
-        val leftValueAt = polynom.valueAt(v)
-        if (polynom.valueAt(v) != null) return leftValueAt
+    override fun findAllBrackets(): Set<Bracket> = polynom.findAllBrackets()
 
-        val rightValueAt = multiple.valueAt(v)
-        if (multiple.valueAt(v) != null) return rightValueAt
-
-        return null
-    }
-
+    override fun containsBracket(): Boolean = polynom.containsBracket()
 
     override fun toString(): String = multiple.toString() + "*" + polynom.toString()
-//        if (polynom is Constant && polynom.evaluate() == 1.0)
-//            multiple.toString()
-//        else if (multiple.evaluate() == 1.0)
-//            polynom.toString()
-//        else multiple.toString() + "*" + polynom.toString()
 
+    override fun equals(other: Any?): Boolean {
+        if (!(other is Multiplication)) return false
+        return multiple == other.multiple && polynom == other.polynom
+    }
 
     override fun addToConstant(fromValue: Double, value : Double) : Polynom? {
         if (polynom is Bracket) return null
         val added = polynom.addToConstant(fromValue, value)
-        if (added != null){
-            multiple.decrement()
-        }
-        return added
+        return decrement(added)
     }
 
     override fun addConstant(value: Double): Polynom? {
         if (polynom is Bracket) return null
         val added = polynom.addConstant(value)
-        if (added != null){
-            multiple.increment()
-        }
-        return added
+        return increment(added)
     }
 
     override fun removeConstant(value: Double): Polynom? {
         if (polynom is Bracket) return null
         val added = polynom.removeConstant(value)
-        if (added != null){
-            multiple.decrement()
-        }
-        return added
+        return decrement(added)
     }
 
-    override fun addVariable(name: String, v : Double): Polynom? {
+    override fun addVariable(name: String): Polynom? {
         if (polynom is Bracket) return null
-        val added = polynom.addVariable(name, v)
-        if (added != null){
+        val added = polynom.addVariable(name)
+        return increment(added)
+    }
+
+    override fun removeVariable(name: String): Polynom? {
+        if (polynom is Bracket) return null
+        val added = polynom.removeVariable(name)
+        return decrement(added)
+    }
+
+
+    override fun addBracket(bracket: Bracket): Polynom? {
+        val added = polynom.addBracket(bracket)
+        return increment(added)
+    }
+
+    override fun removeBracket(bracket: Bracket): Polynom? {
+        val added = polynom.removeBracket(bracket)
+        return decrement(added)
+    }
+
+    private fun increment(added: Polynom?): Polynom? {
+        if (added != null) {
             multiple.increment()
         }
         return added
     }
 
-    override fun removeVariable(name: String, v : Double): Polynom? {
-        if (polynom is Bracket) return null
-        val added = polynom.removeVariable(name, v)
-        if (added != null){
+    private fun decrement(added: Polynom?): Polynom? {
+        if (added != null) {
             multiple.decrement()
         }
         return added

@@ -1,11 +1,22 @@
 package com.example.bakalarka.objects
 
+import android.content.Context
+import android.util.Log
+import android.view.MotionEvent
+import com.example.bakalarka.equation.Equation
+import com.example.vahy.equation.*
 import com.example.vahy.objects.ScreenObject
 
-open class ContainerForEquationBoxes(touchable : Boolean = true) :
+open class ContainerForEquationBoxes(protected val context: Context, touchable : Boolean = true) :
                         ScreenObject(touchable) {
     protected var equationObjectBoxes = mutableListOf<EquationObjectBox>()
     protected var maxNumberOfBoxes = 3
+    protected var polynom = Addition(mutableListOf())
+    protected var screenVariableToStringVar = mutableMapOf<String, String>(
+        Ball(context, 1)::class.toString() to "x",
+        Cube(context, 1)::class.toString() to "y",
+        Cylinder(context, 1)::class.toString() to "z",
+    )
 
     open fun changeSizeInsideObj() {
     }
@@ -13,8 +24,39 @@ open class ContainerForEquationBoxes(touchable : Boolean = true) :
     fun insideVariableTypes(): List<EquationObject> =
         equationObjectBoxes.flatMap { it.returnListInsideVariableTypes() }.toList()
 
+    fun setEquation(p : Addition, screenVarToStr : MutableMap<String, String>){
+        polynom = p
+        screenVariableToStringVar = screenVarToStr
+        p.addends.forEach { pol ->
+            addObjBasedOnPolynom(pol)
+        }
+    }
 
-    open fun addEquationObjIntoHolder(obj : EquationObject){
+    open fun addObjBasedOnPolynom(pol: Polynom) {
+        if (pol is Constant) {
+            val value = pol.getValue()
+            if (value < 0)
+                addEquationObjIntoHolder(Ballon(context, value.toInt()))
+            else if (value > 0)
+                addEquationObjIntoHolder(Weight(context, value.toInt()))
+        } else if (pol is Variable) {
+            val type =
+                screenVariableToStringVar.filterValues { it == pol.getVariable() }.keys.firstOrNull()!!
+            if (type == Ball(context, 1)::class.toString()) {
+                addEquationObjIntoHolder(Ball(context, 1))
+            } else if (type == Cube(context, 1)::class.toString()) {
+                addEquationObjIntoHolder(Cube(context, 1))
+            } else if (type == Cylinder(context, 1)::class.toString()) {
+                addEquationObjIntoHolder(Cylinder(context, 1))
+            }
+        } else if (pol is Multiplication){
+            (0 until pol.getMultiple().evaluate(mutableMapOf()).toInt()).forEach {
+                addObjBasedOnPolynom(pol.getPolynom())
+            }
+        }
+    }
+
+    open fun addEquationObjIntoHolder(obj : EquationObject, eq : Equation? = null){
         var box = findBoxByObjType(obj)
         if (box?.isFull() ?: false) box = null
 
@@ -23,6 +65,7 @@ open class ContainerForEquationBoxes(touchable : Boolean = true) :
                 box = createBoxByObjType(obj)
                 addEquationObjectBox(box)
                 box.addObject(obj)
+                if (eq != null) addObjToPolynom(obj, eq)
                 return
             }catch (e : java.lang.Exception){
                 removeBox(box)
@@ -31,6 +74,37 @@ open class ContainerForEquationBoxes(touchable : Boolean = true) :
         }
 
         box.addObject(obj)
+    }
+
+    private fun addObjToPolynom(obj : EquationObject, eq: Equation){
+        if (obj is ScaleValue){
+            polynom.addConstant(obj.evaluate().toDouble())
+        }else if (obj is ScaleVariable) {
+            polynom.addVariable(screenVariableToStringVar[obj::class.toString()]!!)
+        } else if (obj is Package){
+            val bracket = eq.findBracket()
+            if (bracket != null) polynom.addBracket(bracket)
+        }
+        Log.i("rovnica", "addObject: " + polynom)
+    }
+
+    private fun removeObjFromPolynom(obj : EquationObject?, eq: Equation){
+        if (obj == null)
+            return
+        if (obj is ScaleValue){
+            polynom.removeConstant(obj.evaluate().toDouble())
+        }else if (obj is ScaleVariable){
+            polynom.removeVariable(screenVariableToStringVar[obj::class.toString()]!!)
+        }else if (obj is Package){
+            val bracket = eq.findBracket()
+            if (bracket != null) polynom.removeBracket(bracket)
+        }
+        Log.i("rovnica", "removeObj: " + polynom)
+    }
+
+    private fun addtoConstant(obj : ScaleValue, value : Double){
+        polynom.addToConstant(obj.evaluate().toDouble(), value)
+        Log.i("rovnica", "addToConstant: " + polynom)
     }
 
     private fun removeBox(box: EquationObjectBox?) {
@@ -70,6 +144,29 @@ open class ContainerForEquationBoxes(touchable : Boolean = true) :
         else if (obj is Package) PackageBox()
         else EquationObjectBox()
 
+    fun removeDraggedObject(eq : Equation, delete : Boolean = false){
+        if (delete){
+            removeObjFromPolynom(getDraggedObject(), eq)
+        }
+        for (box in equationObjectBoxes){
+            box.removeDraggedObject(delete)
+        }
+        equationObjectBoxes = equationObjectBoxes.filter { it.insideObject.size > 0 }.toMutableList()
+        changeSizeInsideObj()
+    }
+
+    override fun onDoubleTap(event: MotionEvent): ScaleValue? {
+        val clicked =  super.onDoubleTap(event)
+        if (clicked != null) addtoConstant(clicked, 1.0)
+        return clicked
+    }
+
+    override fun onLongPress(event: MotionEvent): ScaleValue? {
+        val clicked =  super.onLongPress(event)
+        if (clicked != null) addtoConstant(clicked, -1.0)
+        return clicked
+    }
+
     override fun returnDraggedObject(x1: Int, y1: Int): EquationObject? {
         val draggedObj = mutableListOf<EquationObject?>()
         for (box in equationObjectBoxes){
@@ -86,13 +183,8 @@ open class ContainerForEquationBoxes(touchable : Boolean = true) :
         return clickedObj.filter { it != null }.sortedBy { it?.z }.firstOrNull()
     }
 
-    fun removeDraggedObject(delete : Boolean = false){
-        for (box in equationObjectBoxes){
-            box.removeDraggedObject(delete)
-        }
-        equationObjectBoxes = equationObjectBoxes.filter { it.insideObject.size > 0 }.toMutableList()
-        changeSizeInsideObj()
-    }
+    private fun getDraggedObject() : EquationObject? =
+        equationObjectBoxes.map { it.getDraggedObject() }.filter { it != null }.firstOrNull()
 
     override fun returnPackages() : MutableList<Package> =
         equationObjectBoxes.flatMap { it.returnPackages()}.toMutableList()

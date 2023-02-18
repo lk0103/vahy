@@ -8,11 +8,13 @@ import android.graphics.Rect
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.example.bakalarka.R
+import com.example.bakalarka.equation.Bracket
+import com.example.vahy.equation.*
 
 class HolderOfWeights(context: Context,
                       private val left : Boolean,
                       touchable : Boolean = true) :
-    ContainerForEquationBoxes(touchable){
+    ContainerForEquationBoxes(context, touchable){
     private var defaultWidthScale = 100
     private var defaultHeightScale = 100
     private var heightWithoutBowl = 0
@@ -76,5 +78,13 @@ class HolderOfWeights(context: Context,
             ),
             paint
         )
+    }
+
+    override fun addObjBasedOnPolynom(pol: Polynom) {
+        if (pol is Bracket) {
+            addEquationObjIntoHolder(Package(context))
+        } else {
+            super.addObjBasedOnPolynom(pol)
+        }
     }
 }

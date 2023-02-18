@@ -1,6 +1,7 @@
 package com.example.bakalarka.objects
 
 import android.graphics.*
+import android.view.MotionEvent
 import com.example.vahy.objects.ScreenObject
 import kotlin.math.ceil
 

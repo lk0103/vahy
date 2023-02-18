@@ -4,7 +4,9 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
+import android.view.MotionEvent
 import com.example.bakalarka.objects.EquationObject
+import com.example.bakalarka.objects.ScaleValue
 
 open class ScreenObject(var touchable : Boolean){
     var x : Int  = 0
@@ -75,4 +77,21 @@ open class ScreenObject(var touchable : Boolean){
     open fun isIn(x1 : Int, y1 : Int) : Boolean =
                 (x1 >= x && x1 <= x + width &&
                 y1 >= y && y1 <= y + height)
+
+
+    open fun onDoubleTap(event: MotionEvent) : ScaleValue?{
+        val clickedObject = returnClickedObject(event.x.toInt(), event.y.toInt())
+        if (!(clickedObject is ScaleValue))
+            return null
+        (clickedObject as ScaleValue).increment()
+        return clickedObject
+    }
+
+    open fun onLongPress(event: MotionEvent) : ScaleValue?{
+        val clickedObject = returnClickedObject(event.x.toInt(), event.y.toInt())
+        if (!(clickedObject is ScaleValue))
+            return null
+        (clickedObject as ScaleValue).decrement()
+        return clickedObject
+    }
 }

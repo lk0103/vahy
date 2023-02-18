@@ -5,17 +5,14 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
-import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.view.GestureDetectorCompat
-import com.example.bakalarka.equation.Bracket
+import com.example.bakalarka.equation.Equation
+import com.example.bakalarka.equation.SystemOfEquations
 import com.example.bakalarka.objects.*
 import com.example.vahy.equation.Addition
-import com.example.vahy.equation.Constant
-import com.example.vahy.equation.Multiplication
-import com.example.vahy.equation.Variable
 import com.example.vahy.objects.*
 
 ///-------------!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!-------------------
@@ -31,6 +28,12 @@ class ScalesView(context: Context, attrs: AttributeSet)
     private var draggedFrom : ContainerForEquationBoxes? = null
     private var clickedObject : EquationObject? = null
     private var maxNumberOfVariableTypes = 1
+    private var equation = Equation(Addition(mutableListOf()), Addition(mutableListOf()))
+    private var screenVariableToStringVar = mutableMapOf<String, String>(
+        Ball(context, 1)::class.toString() to "x",
+        Cube(context, 1)::class.toString() to "y",
+        Cylinder(context, 1)::class.toString() to "z",
+    )
 
     private val leftHolder = HolderOfWeights(context, true)
     private val rightHolder = HolderOfWeights(context, false)
@@ -67,82 +70,6 @@ class ScalesView(context: Context, attrs: AttributeSet)
         screenObjects.add(bin)
         screenObjects.add(objectsToChooseFrom)
 
-        ////TEST ROVNIC
-        val eq = Addition(mutableListOf(
-            Multiplication(Variable("x", 2.0),
-                            Constant(4.0)
-            ) ,
-            Multiplication(Constant(2.0),
-                Constant(5.0)
-            ),
-            Constant(3.0),
-            Multiplication(Bracket(Addition(mutableListOf(Constant(4.0),
-                                                Variable("x", 2.0)))),
-                Constant(6.0)
-            )
-        ))
-        ///otestovat ci nebude 0 * 2 alebo 0 * x
-        Log.i("rovnica", "povodna " + eq.toString())
-//        eq.addConstant(3.0)
-//        Log.i("rovnica", "add const 3: " + eq.toString())
-//        eq.addConstant(3.0)
-//        Log.i("rovnica", "add const 3: " + eq.toString())
-//        eq.addConstant(2.0)
-//        Log.i("rovnica", "add const 2: " + eq.toString())
-//        eq.addConstant(4.0)
-//        Log.i("rovnica", "add const 4: " + eq.toString())
-//        eq.removeConstant(4.0)
-//        Log.i("rovnica", "remove const 4: " + eq.toString())
-//        eq.removeConstant(4.0)
-//        Log.i("rovnica", "remove const 4: " + eq.toString())
-//        eq.removeConstant(2.0)
-//        Log.i("rovnica", "remove const 2: " + eq.toString())
-//        eq.removeConstant(3.0)
-//        Log.i("rovnica", "remove const 3: " + eq.toString())
-//        eq.removeConstant(3.0)
-//        Log.i("rovnica", "remove const 3: " + eq.toString())
-//        eq.removeConstant(3.0)
-//        Log.i("rovnica", "remove const 3: " + eq.toString())
-//        eq.removeConstant(3.0)
-//        Log.i("rovnica", "remove const 3: " + eq.toString())
-
-//        eq.addToConstant(3.0, 1.0)
-//        Log.i("rovnica", "inc const 3: " + eq.toString())
-//        eq.addToConstant(4.0, 2.0)
-//        Log.i("rovnica", "inc const 4: " + eq.toString())
-//        eq.addToConstant(3.0, 1.0)
-//        Log.i("rovnica", "inc const 3: " + eq.toString())
-//        eq.addToConstant(6.0, -7.0)
-//        Log.i("rovnica", "dec const 5: " + eq.toString())
-//        eq.addToConstant(-1.0, 1.0)
-//        Log.i("rovnica", "dec const 5: " + eq.toString())
-//        eq.addToConstant(2.0, 10.0)
-//        Log.i("rovnica", "dec const 2: " + eq.toString())
-
-        eq.addVariable("x", 2.0)
-        Log.i("rovnica", "add x = 2: " + eq.toString())
-        eq.addVariable("x", 3.0)
-        Log.i("rovnica", "add x = 3: " + eq.toString())
-        eq.removeVariable("x", 2.0)
-        Log.i("rovnica", "remove x = 2: " + eq.toString())
-        eq.removeVariable("x", 2.0)
-        Log.i("rovnica", "remove x = 2: " + eq.toString())
-        eq.removeVariable("x", 2.0)
-        Log.i("rovnica", "remove x = 2: " + eq.toString())
-        eq.removeVariable("x", 2.0)
-        Log.i("rovnica", "remove x = 2: " + eq.toString())
-        eq.removeVariable("x", 2.0)
-        Log.i("rovnica", "remove x = 2: " + eq.toString())
-        eq.removeVariable("x", 2.0)
-        Log.i("rovnica", "remove x = 2: " + eq.toString())
-        eq.removeVariable("x", 2.0)
-        Log.i("rovnica", "remove x = 2: " + eq.toString())
-        eq.removeVariable("y", 2.0)
-        Log.i("rovnica", "remove y = 2: " + eq.toString())
-        eq.addVariable("y", 3.0)
-        Log.i("rovnica", "add y = 3: " + eq.toString())
-        eq.addVariable("y", 3.0)
-        Log.i("rovnica", "add y = 3: " + eq.toString())
     }
 
     private fun manageOpenPackage() {
@@ -191,6 +118,66 @@ class ScalesView(context: Context, attrs: AttributeSet)
         objectsToChooseFrom.setInsideObject(objects)
         manageOpenPackage()
         invalidate()
+    }
+
+    fun setEquation(sysOfEq : SystemOfEquations, indexEq : Int) : Boolean{
+        if (! sysOfEq.allBracketsSame() || indexEq >= sysOfEq.equations.size)
+            return false
+        equation = sysOfEq.equations[indexEq]
+        val variableScreenTypes: MutableList<String> = createMapingForScreenVariablesForNewEq()
+
+        changeObjToChooseFromForNewEq(sysOfEq, variableScreenTypes)
+
+        try {
+            loadEquation()
+        }catch (e : java.lang.Exception){
+            equation = Equation(Addition(mutableListOf()), Addition(mutableListOf()))
+            screenVariableToStringVar = mutableMapOf<String, String>(
+                Ball(context, 1)::class.toString() to "x",
+                Cube(context, 1)::class.toString() to "y",
+                Cylinder(context, 1)::class.toString() to "z",
+            )
+            return false
+        }
+        return true
+    }
+
+    private fun changeObjToChooseFromForNewEq(sysOfEq : SystemOfEquations, variableScreenTypes: MutableList<String>) {
+        val containsPackages = sysOfEq.containsBracket()
+        setObjectsToChooseFrom(objectsToChooseFrom.getInsideObjects().filter {
+            it is ScaleValue || (containsPackages && it is Package) ||
+                    variableScreenTypes.contains(it::class.toString())
+        }.toMutableList())
+    }
+
+    private fun createMapingForScreenVariablesForNewEq(): MutableList<String> {
+        val variables = equation.findVariablesStrings()
+        maxNumberOfVariableTypes = Math.min(variables.size, 3)
+        screenVariableToStringVar = mutableMapOf()
+        val variableScreenTypes: MutableList<String> = mutableListOf(
+            Ball(context, 1)::class.toString(),
+            Cube(context, 1)::class.toString(),
+            Cylinder(context, 1)::class.toString()
+        ).shuffled()
+            .subList(0, maxNumberOfVariableTypes).toMutableList()
+        (0 until maxNumberOfVariableTypes).forEach { i ->
+            screenVariableToStringVar[variableScreenTypes[i]] = variables[i]
+        }
+        return variableScreenTypes
+    }
+
+    private fun loadEquation(){
+        val packagePolynom = equation.findBracket()
+        screenObjects.filter { it is ContainerForEquationBoxes }.forEach {
+            when (it){
+                leftHolder -> (it as ContainerForEquationBoxes).setEquation(equation.left, screenVariableToStringVar)
+                rightHolder -> (it as ContainerForEquationBoxes).setEquation(equation.right, screenVariableToStringVar)
+                openPackage -> {
+                    if (packagePolynom != null)
+                            (it as ContainerForEquationBoxes).setEquation(packagePolynom.polynom, screenVariableToStringVar)
+                }
+            }
+        }
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -344,7 +331,7 @@ class ScalesView(context: Context, attrs: AttributeSet)
             return
         }
         try {
-            container.addEquationObjIntoHolder(obj)
+            container.addEquationObjIntoHolder(obj, equation)
             removeDraggedObjFromContainer(draggedFrom, true)
             if (container is OpenPackage)
                 changeInsideOfPackages()
@@ -375,7 +362,7 @@ class ScalesView(context: Context, attrs: AttributeSet)
     fun removeDraggedObjFromContainer(holder : ContainerForEquationBoxes?, delete: Boolean = false){
         if (holder == null)
             return
-        holder.removeDraggedObject(delete)
+        holder.removeDraggedObject(equation, delete)
         if (delete && holder is OpenPackage)
             changeInsideOfPackages()
     }
@@ -393,34 +380,27 @@ class ScalesView(context: Context, attrs: AttributeSet)
             draggedObject?.draw(canvas!!, paint)
     }
 
-    private fun findClickedObject(event: MotionEvent): EquationObject? {
-        var clickedObj: EquationObject? = null
-        for (obj in containersToDragFrom) {
-            clickedObj = obj.returnClickedObject(event.x.toInt(), event.y.toInt())
-            if (clickedObj != null) {
-                break
-            }
-        }
-        return clickedObj
-    }
-
     override fun onLongPress(event: MotionEvent?) {
         if (event == null) return
 
-        clickedObject = findClickedObject(event)
-        if (!(clickedObject is ScaleValue))
-            return
-        (clickedObject as ScaleValue).decrement()
+        for (obj in containersToDragFrom) {
+            clickedObject = obj.onLongPress(event)
+            if (clickedObject != null) {
+                break
+            }
+        }
         invalidate()
     }
 
     override fun onDoubleTap(event: MotionEvent?): Boolean {
         if (event == null) return true
 
-        clickedObject = findClickedObject(event)
-        if (!(clickedObject is ScaleValue))
-            return true
-        (clickedObject as ScaleValue).increment()
+        for (obj in containersToDragFrom) {
+            clickedObject = obj.onDoubleTap(event)
+            if (clickedObject != null) {
+                break
+            }
+        }
         invalidate()
         return true
     }

@@ -8,11 +8,15 @@ import android.graphics.Rect
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.example.bakalarka.R
+import com.example.bakalarka.equation.Bracket
+import com.example.bakalarka.equation.Equation
 import com.example.bakalarka.objects.EquationObject
 import com.example.bakalarka.objects.ContainerForEquationBoxes
+import com.example.bakalarka.objects.Package
+import com.example.vahy.equation.Polynom
 
 class OpenPackage(context : Context, touchable : Boolean = true)
-    : ContainerForEquationBoxes(touchable) {
+    : ContainerForEquationBoxes(context, touchable) {
 
 
     init {
@@ -67,10 +71,10 @@ class OpenPackage(context : Context, touchable : Boolean = true)
         }
     }
 
-    override fun addEquationObjIntoHolder(obj: EquationObject) {
+    override fun addEquationObjIntoHolder(obj : EquationObject, eq : Equation?) {
         if (obj is com.example.bakalarka.objects.Package)
             return
-        super.addEquationObjIntoHolder(obj)
+        super.addEquationObjIntoHolder(obj, eq)
     }
 
     override fun isIn(x1 : Int, y1 : Int) : Boolean =
@@ -79,4 +83,5 @@ class OpenPackage(context : Context, touchable : Boolean = true)
 
     fun getInsideObjects() : List<EquationObject> =
         equationObjectBoxes.flatMap { it.insideObject }.toList()
+
 }

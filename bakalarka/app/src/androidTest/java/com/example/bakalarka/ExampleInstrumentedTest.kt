@@ -1,7 +1,13 @@
 package com.example.bakalarka
 
+import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.example.bakalarka.equation.Equation
+import com.example.vahy.equation.Addition
+import com.example.vahy.equation.Constant
+import com.example.vahy.equation.Multiplication
+import com.example.vahy.equation.Variable
 
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -21,4 +27,6 @@ class ExampleInstrumentedTest {
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
         assertEquals("com.example.bakalarka", appContext.packageName)
     }
+
+
 }

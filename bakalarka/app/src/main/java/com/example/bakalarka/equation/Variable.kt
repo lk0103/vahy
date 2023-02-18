@@ -1,19 +1,27 @@
 package com.example.vahy.equation
 
-class Variable(protected var variable : String,
-               protected var value : Double) : Polynom(){
+import com.example.bakalarka.equation.Bracket
 
-    override fun evaluate(): Double = value
+class Variable(protected var variable : String) : Polynom(){
 
-    override fun valueAt(v: String): Double? =
-        if (v == variable) value
-        else null
+    override fun evaluate(variables : Map<String, Double>): Double =
+        variables[variable] ?: 0.0
+
+    override fun findAllVariables(): Set<String> = setOf(variable)
 
     override fun toString(): String = variable
 
-    override fun removeVariable(name: String, v : Double): Polynom? =
+    override fun equals(other: Any?): Boolean {
+        if (!(other is Variable)) return false
+        return variable == other.variable
+    }
+
+    override fun removeVariable(name: String): Polynom? =
         if (variable == name) this else null
 
-    override fun addVariable(name: String, v : Double): Polynom? =
+    override fun addVariable(name: String): Polynom? =
         if (variable == name) this else null
+
+    @JvmName("getVariable1")
+    fun getVariable() : String = variable
 }

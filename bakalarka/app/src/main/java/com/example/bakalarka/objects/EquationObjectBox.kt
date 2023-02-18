@@ -76,6 +76,8 @@ open class EquationObjectBox ()
         draggedObj = null
     }
 
+    fun getDraggedObject() : EquationObject? = draggedObj
+
     open fun returnListInsideVariableTypes() : List<EquationObject> =
         insideObject.filter { it is ScaleVariable }.toList()
 

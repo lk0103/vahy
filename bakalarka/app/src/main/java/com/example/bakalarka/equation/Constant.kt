@@ -1,11 +1,16 @@
 package com.example.vahy.equation
 
-class Constant(protected var constant : Double) : Polynom() {
-    override fun valueAt(variable: String): Double? = null
+import com.example.bakalarka.equation.Bracket
 
-    override fun evaluate(): Double = constant
+class Constant(protected var constant : Double) : Polynom() {
+    override fun evaluate(variables : Map<String, Double>): Double = constant
 
     override fun toString(): String = constant.toString()
+
+    override fun equals(other: Any?): Boolean {
+        if (!(other is Constant)) return false
+        return constant == other.constant
+    }
 
     fun increment() {
         constant++
@@ -23,4 +28,6 @@ class Constant(protected var constant : Double) : Polynom() {
 
     override fun addConstant(value: Double): Polynom? =
         if (constant == value) this else null
+
+    fun getValue() : Double = constant
 }
