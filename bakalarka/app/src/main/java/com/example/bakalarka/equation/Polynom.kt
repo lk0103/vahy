@@ -3,7 +3,7 @@ package com.example.vahy.equation
 import com.example.bakalarka.equation.Bracket
 
 abstract class Polynom {
-    abstract fun evaluate(variables : Map<String, Double>) : Double
+    abstract fun evaluate(variables : Map<String, Int>) : Int
 
     open fun findAllVariables() : Set<String> = setOf()
 
@@ -15,11 +15,11 @@ abstract class Polynom {
 
     open fun addVariable(name: String) : Polynom? = null
 
-    open fun removeConstant(value : Double) : Polynom? = null
+    open fun removeConstant(value : Int) : Polynom? = null
 
-    open fun addConstant(value : Double) : Polynom? = null
+    open fun addConstant(value : Int) : Polynom? = null
 
-    open fun addToConstant(fromValue: Double, value : Double) : Polynom? = null
+    open fun addToConstant(fromValue: Int, value : Int) : Polynom? = null
 
     open fun addBracket(bracket: Bracket) : Polynom? = null
 

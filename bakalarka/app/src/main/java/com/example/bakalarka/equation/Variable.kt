@@ -4,8 +4,8 @@ import com.example.bakalarka.equation.Bracket
 
 class Variable(protected var variable : String) : Polynom(){
 
-    override fun evaluate(variables : Map<String, Double>): Double =
-        variables[variable] ?: 0.0
+    override fun evaluate(variables : Map<String, Int>): Int =
+        variables[variable] ?: 0
 
     override fun findAllVariables(): Set<String> = setOf(variable)
 

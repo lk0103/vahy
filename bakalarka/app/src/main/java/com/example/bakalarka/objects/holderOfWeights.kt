@@ -1,10 +1,8 @@
 package com.example.bakalarka.objects
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.Rect
+import android.graphics.*
+import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.example.bakalarka.R
@@ -13,11 +11,16 @@ import com.example.vahy.equation.*
 
 class HolderOfWeights(context: Context,
                       private val left : Boolean,
-                      touchable : Boolean = true) :
-    ContainerForEquationBoxes(context, touchable){
+                      private var angle : Float = 0F,
+                      dragFrom : Boolean = true, dragTo : Boolean = true) :
+    ContainerForEquationBoxes(context, dragFrom, dragTo){
     private var defaultWidthScale = 100
     private var defaultHeightScale = 100
+    private var widthOfScale = 100
+    private var heightOfScale = 100
     private var heightWithoutBowl = 0
+    private var originalX = 0
+    private var originalY = 0
 
     init {
         if (left == true) {
@@ -32,14 +35,17 @@ class HolderOfWeights(context: Context,
         heightWithoutBowl = 492
         defaultWidthScale = 1000
         defaultHeightScale = 607
-        image = Bitmap.createScaledBitmap(image, width, height, true);
+        widthOfScale = defaultWidthScale
+        heightOfScale = defaultHeightScale
+        image = Bitmap.createScaledBitmap(image, width, height, true)
+        rotateScale(angle)
     }
 
     override fun sizeChanged(w : Int, h : Int, xStart : Int, yStart : Int){
         x = xStart
         y = yStart
-        var widthOfScale = w
-        var heightOfScale = w * defaultHeightScale / defaultWidthScale
+        widthOfScale = w
+        heightOfScale = w * defaultHeightScale / defaultWidthScale
         while (heightOfScale + y >= h){
             widthOfScale -= 5
             heightOfScale -= 5
@@ -50,7 +56,10 @@ class HolderOfWeights(context: Context,
         if (left == false) {
             x = xStart + widthOfScale - x - width
         }
+        originalX = x
+        originalY = y
         image = Bitmap.createScaledBitmap(image, width, height, true)
+        rotateScale(angle)
         changeSizeInsideObj()
     }
 
@@ -78,6 +87,27 @@ class HolderOfWeights(context: Context,
             ),
             paint
         )
+
+        ///////////////////
+//        paint.color = Color.GREEN
+//        if (left) {
+//            val posLeft = getPositionLeftHolder()
+//            canvas.drawRect(Rect(
+//                posLeft.first - 30,
+//                posLeft.second - 30,
+//                posLeft.first + 30,
+//                posLeft.second + 30
+//            ), paint)
+//        }
+//        else {
+//            val posRight = getPositionRightHolder()
+//            canvas.drawRect(Rect(
+//                posRight.first - 30,
+//                posRight.second - 30,
+//                posRight.first + 30,
+//                posRight.second + 30
+//            ), paint)
+//        }
     }
 
     override fun addObjBasedOnPolynom(pol: Polynom) {
@@ -86,5 +116,45 @@ class HolderOfWeights(context: Context,
         } else {
             super.addObjBasedOnPolynom(pol)
         }
+    }
+
+    fun getPositionLeftHolder() : Pair<Int, Int> {
+        val padding = widthOfScale * 17 / 96
+        val r = widthOfScale / 2 - padding
+        val radians = 2 * Math.PI * angle.toDouble() / 360
+        return Pair((x + padding + (r - (r * Math.cos(radians)))).toInt(),
+            (y + heightOfScale / 5 - r * Math.sin(radians)).toInt())
+    }
+
+    fun getPositionRightHolder() : Pair<Int, Int> {
+        val padding = widthOfScale * 37 / 192
+        val r = widthOfScale / 2 - padding
+        val radians = 2 * Math.PI * -angle.toDouble() / 360
+        return Pair((x + width - padding - (r - (r * Math.cos(radians)))).toInt(),
+            (y + heightOfScale / 5 - 2 * r * Math.sin(radians)).toInt())
+    }
+
+    fun setPositionLeftHolder() {
+        val pos = getPositionLeftHolder()
+        x = pos.first - widthOfScale * 17 / 96
+        y = pos.second - heightOfScale / 5
+    }
+
+    fun setPositionRightHolder() {
+        val pos = getPositionRightHolder()
+        x = pos.first + widthOfScale * 37 / 192 - width
+        y = pos.second - heightOfScale / 5
+    }
+
+    fun rotateScale(a : Float){
+        x = originalX
+        y = originalY
+        angle = a
+        if (left){
+            setPositionLeftHolder()
+        }else{
+            setPositionRightHolder()
+        }
+        changeSizeInsideObj()
     }
 }

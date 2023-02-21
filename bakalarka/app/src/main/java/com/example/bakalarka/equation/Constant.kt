@@ -2,8 +2,8 @@ package com.example.vahy.equation
 
 import com.example.bakalarka.equation.Bracket
 
-class Constant(protected var constant : Double) : Polynom() {
-    override fun evaluate(variables : Map<String, Double>): Double = constant
+class Constant(protected var constant : Int) : Polynom() {
+    override fun evaluate(variables : Map<String, Int>): Int = constant
 
     override fun toString(): String = constant.toString()
 
@@ -20,14 +20,14 @@ class Constant(protected var constant : Double) : Polynom() {
         constant--
     }
 
-    override fun addToConstant(fromValue: Double, value: Double): Polynom? =
+    override fun addToConstant(fromValue: Int, value: Int): Polynom? =
         if (constant == fromValue) Constant(constant + value) else null
 
-    override fun removeConstant(value: Double): Polynom? =
+    override fun removeConstant(value: Int): Polynom? =
         if (constant == value) this else null
 
-    override fun addConstant(value: Double): Polynom? =
+    override fun addConstant(value: Int): Polynom? =
         if (constant == value) this else null
 
-    fun getValue() : Double = constant
+    fun getValue() : Int = constant
 }

@@ -61,15 +61,20 @@ class ScalesFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProvider(this).get(ScalesViewModel::class.java)
 
-        val left1 = Addition(mutableListOf(
-            Variable("x")
+
+        val left = Addition(mutableListOf(
+                    Multiplication(Bracket( Addition(mutableListOf(
+                        Multiplication(Variable("x"), Constant(2)),
+                        Constant(2)))), Constant(2))))
+        val right = Addition(mutableListOf(
+            Constant(9),
+            Constant(4),
+            Constant(3)
         ))
-        val right1 = Addition(mutableListOf(
-            Constant(3.0),
-            Constant(2.0)
-        ))
-        val sysEq = SystemOfEquations(listOf(Equation(left1, right1)))
+        val sysEq = SystemOfEquations(listOf(Equation(left, right)))
         ScalesView.setEquation(sysEq, 0)
+
+
 
         //binding.setVariable(myViewModel, viewModel)
         //ScalesView.setVisibilityObjectToChooseFrom(false)

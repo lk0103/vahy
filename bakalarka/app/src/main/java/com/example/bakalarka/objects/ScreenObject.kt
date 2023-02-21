@@ -8,7 +8,7 @@ import android.view.MotionEvent
 import com.example.bakalarka.objects.EquationObject
 import com.example.bakalarka.objects.ScaleValue
 
-open class ScreenObject(var touchable : Boolean){
+open class ScreenObject(var dragFrom : Boolean, var dragTo : Boolean){
     var x : Int  = 0
     var y = 0
     var z = 0

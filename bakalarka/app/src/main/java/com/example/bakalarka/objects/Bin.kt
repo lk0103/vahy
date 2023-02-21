@@ -9,7 +9,7 @@ import com.example.bakalarka.R
 //mozno ked dvojklik na kos - tak sa vsetko vyberie
 //a vrati sa rovnica do povodneho stavu
 class Bin(context : Context) :
-    ScreenObject(false){
+    ScreenObject(false, true){
 
     init {
         image = ContextCompat.getDrawable(context, R.drawable.bin1)!!.toBitmap()

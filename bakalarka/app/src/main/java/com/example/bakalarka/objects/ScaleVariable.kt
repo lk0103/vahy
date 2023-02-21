@@ -1,9 +1,9 @@
 package com.example.bakalarka.objects
 
 open class ScaleVariable(protected val value : Int,
-                         touchable : Boolean = false,
-                         draggable : Boolean = true)
-    : EquationObject(touchable, draggable)  {
+                         dragFrom : Boolean = false,
+                         dragTo : Boolean = false)
+    : EquationObject(dragFrom, dragTo)  {
 
     override fun evaluate() : Int = value
 }

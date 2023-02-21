@@ -8,7 +8,7 @@ import com.example.bakalarka.R
 import com.example.vahy.objects.ScreenObject
 
 class BaseOfScale(context : Context) :
-    ScreenObject(false){
+    ScreenObject(false, false){
 
     init {
         image = ContextCompat.getDrawable(context, R.drawable.base_of_scale1)!!.toBitmap()

@@ -7,9 +7,9 @@ import androidx.core.graphics.drawable.toBitmap
 import com.example.bakalarka.R
 
 class Weight(private val context: Context, value : Int,
-             touchable : Boolean = false,
-             draggable : Boolean = true)
-    : ScaleValue(value, touchable, draggable)  {
+             dragFrom : Boolean = false,
+             dragTo : Boolean = false)
+    : ScaleValue(value, dragFrom, dragTo)  {
 
     init {
         image = ContextCompat.getDrawable(context, R.drawable.weight)!!.toBitmap()
@@ -22,7 +22,7 @@ class Weight(private val context: Context, value : Int,
     }
 
     override fun makeCopy(): EquationObject =
-        setParametersOfCopy(Weight(context , value, touchable, draggable))
+        setParametersOfCopy(Weight(context , value, dragFrom, dragTo))
 
 
     override fun drawValue(paint: Paint, canvas: Canvas) {

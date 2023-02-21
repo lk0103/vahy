@@ -5,7 +5,7 @@ import android.graphics.Paint
 import com.example.vahy.objects.ScreenObject
 
 open class EquationObjectBox ()
-    : ScreenObject(false) {
+    : ScreenObject(true, true) {
     var insideObject = mutableListOf <EquationObject>()
     protected var draggedObj : EquationObject? = null
     protected var positions = mutableListOf<List<Int>>()
@@ -59,12 +59,12 @@ open class EquationObjectBox ()
     }
 
     override fun returnDraggedObject(x1: Int, y1: Int): EquationObject? {
-        draggedObj = insideObject.filter { it.onTouch(x1, y1) }.sortedBy { it.z }.firstOrNull()
+        draggedObj = insideObject.filter { it.isIn(x1, y1) }.sortedBy { it.z }.firstOrNull()
         return draggedObj?.makeCopy()
     }
 
     override fun returnClickedObject(x1: Int, y1: Int): EquationObject? =
-        insideObject.filter { it.onTouch(x1, y1) }.sortedBy { it.z }.firstOrNull()
+        insideObject.filter { it.isIn(x1, y1) }.sortedBy { it.z }.firstOrNull()
 
     fun removeDraggedObject(delete : Boolean = false){
         if (draggedObj == null) return

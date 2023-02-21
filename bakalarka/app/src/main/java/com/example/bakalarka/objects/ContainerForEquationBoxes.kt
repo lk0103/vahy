@@ -3,12 +3,14 @@ package com.example.bakalarka.objects
 import android.content.Context
 import android.util.Log
 import android.view.MotionEvent
-import com.example.bakalarka.equation.Equation
+import com.example.bakalarka.equation.SystemOfEquations
 import com.example.vahy.equation.*
 import com.example.vahy.objects.ScreenObject
 
-open class ContainerForEquationBoxes(protected val context: Context, touchable : Boolean = true) :
-                        ScreenObject(touchable) {
+open class ContainerForEquationBoxes(protected val context: Context,
+                                     dragFrom : Boolean = true,
+                                    dragTo : Boolean = true) :
+                        ScreenObject(dragFrom, dragTo) {
     protected var equationObjectBoxes = mutableListOf<EquationObjectBox>()
     protected var maxNumberOfBoxes = 3
     protected var polynom = Addition(mutableListOf())
@@ -50,13 +52,13 @@ open class ContainerForEquationBoxes(protected val context: Context, touchable :
                 addEquationObjIntoHolder(Cylinder(context, 1))
             }
         } else if (pol is Multiplication){
-            (0 until pol.getMultiple().evaluate(mutableMapOf()).toInt()).forEach {
+            (0 until pol.getMultiple().evaluate(mutableMapOf())).forEach {
                 addObjBasedOnPolynom(pol.getPolynom())
             }
         }
     }
 
-    open fun addEquationObjIntoHolder(obj : EquationObject, eq : Equation? = null){
+    open fun addEquationObjIntoHolder(obj : EquationObject, sysEq : SystemOfEquations? = null){
         var box = findBoxByObjType(obj)
         if (box?.isFull() ?: false) box = null
 
@@ -65,7 +67,7 @@ open class ContainerForEquationBoxes(protected val context: Context, touchable :
                 box = createBoxByObjType(obj)
                 addEquationObjectBox(box)
                 box.addObject(obj)
-                if (eq != null) addObjToPolynom(obj, eq)
+                if (sysEq != null) addObjToPolynom(obj, sysEq)
                 return
             }catch (e : java.lang.Exception){
                 removeBox(box)
@@ -74,37 +76,38 @@ open class ContainerForEquationBoxes(protected val context: Context, touchable :
         }
 
         box.addObject(obj)
+        if (sysEq != null) addObjToPolynom(obj, sysEq)
     }
 
-    private fun addObjToPolynom(obj : EquationObject, eq: Equation){
+    private fun addObjToPolynom(obj : EquationObject, sysEq: SystemOfEquations){
         if (obj is ScaleValue){
-            polynom.addConstant(obj.evaluate().toDouble())
+            polynom.addConstant(obj.evaluate())
         }else if (obj is ScaleVariable) {
             polynom.addVariable(screenVariableToStringVar[obj::class.toString()]!!)
         } else if (obj is Package){
-            val bracket = eq.findBracket()
+            val bracket = sysEq.findBracket()
             if (bracket != null) polynom.addBracket(bracket)
         }
-        Log.i("rovnica", "addObject: " + polynom)
+        Log.i("rovnica", "container addObject: " + polynom)
     }
 
-    private fun removeObjFromPolynom(obj : EquationObject?, eq: Equation){
+    private fun removeObjFromPolynom(obj : EquationObject?, sysEq: SystemOfEquations){
         if (obj == null)
             return
         if (obj is ScaleValue){
-            polynom.removeConstant(obj.evaluate().toDouble())
+            polynom.removeConstant(obj.evaluate())
         }else if (obj is ScaleVariable){
             polynom.removeVariable(screenVariableToStringVar[obj::class.toString()]!!)
         }else if (obj is Package){
-            val bracket = eq.findBracket()
+            val bracket = sysEq.findBracket()
             if (bracket != null) polynom.removeBracket(bracket)
         }
-        Log.i("rovnica", "removeObj: " + polynom)
+       Log.i("rovnica", "container removeObj: " + polynom)
     }
 
-    private fun addtoConstant(obj : ScaleValue, value : Double){
-        polynom.addToConstant(obj.evaluate().toDouble(), value)
-        Log.i("rovnica", "addToConstant: " + polynom)
+    private fun addToConstant(toValue : Int, value : Int){
+        polynom.addToConstant(toValue, value)
+        Log.i("rovnica", "container addToConstant: " + polynom)
     }
 
     private fun removeBox(box: EquationObjectBox?) {
@@ -144,9 +147,9 @@ open class ContainerForEquationBoxes(protected val context: Context, touchable :
         else if (obj is Package) PackageBox()
         else EquationObjectBox()
 
-    fun removeDraggedObject(eq : Equation, delete : Boolean = false){
+    fun removeDraggedObject(sysEq : SystemOfEquations, delete : Boolean = false){
         if (delete){
-            removeObjFromPolynom(getDraggedObject(), eq)
+            removeObjFromPolynom(getDraggedObject(), sysEq)
         }
         for (box in equationObjectBoxes){
             box.removeDraggedObject(delete)
@@ -157,13 +160,13 @@ open class ContainerForEquationBoxes(protected val context: Context, touchable :
 
     override fun onDoubleTap(event: MotionEvent): ScaleValue? {
         val clicked =  super.onDoubleTap(event)
-        if (clicked != null) addtoConstant(clicked, 1.0)
+        if (clicked != null) addToConstant(clicked.evaluate() - 1, 1)
         return clicked
     }
 
     override fun onLongPress(event: MotionEvent): ScaleValue? {
         val clicked =  super.onLongPress(event)
-        if (clicked != null) addtoConstant(clicked, -1.0)
+        if (clicked != null) addToConstant(clicked.evaluate() + 1, -1)
         return clicked
     }
 
@@ -188,4 +191,6 @@ open class ContainerForEquationBoxes(protected val context: Context, touchable :
 
     override fun returnPackages() : MutableList<Package> =
         equationObjectBoxes.flatMap { it.returnPackages()}.toMutableList()
+
+
 }

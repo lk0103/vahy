@@ -7,9 +7,9 @@ import androidx.core.graphics.drawable.toBitmap
 import com.example.bakalarka.R
 
 class Cylinder(private val context: Context, value : Int,
-               touchable : Boolean = false,
-               draggable : Boolean = true)
-    : ScaleVariable(value, touchable, draggable) {
+               dragFrom : Boolean = false,
+               dragTo : Boolean = true)
+    : ScaleVariable(value, dragFrom, dragTo) {
 
     init {
         image = ContextCompat.getDrawable(context, R.drawable.cylinder1)!!.toBitmap()
@@ -22,7 +22,7 @@ class Cylinder(private val context: Context, value : Int,
     }
 
     override fun makeCopy(): EquationObject =
-        setParametersOfCopy(Cylinder(context , value, touchable, draggable))
+        setParametersOfCopy(Cylinder(context , value, dragFrom, dragTo))
 
     override fun evaluate(): Int = value
 }

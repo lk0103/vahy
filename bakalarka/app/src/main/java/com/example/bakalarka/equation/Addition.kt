@@ -5,7 +5,7 @@ import com.example.bakalarka.equation.Bracket
 
 class Addition(var addends : MutableList<Polynom>) : Polynom(){
 
-    override fun evaluate(variables : Map<String, Double>): Double =
+    override fun evaluate(variables : Map<String, Int>): Int =
         addends.map { it.evaluate(variables) }.sum()
 
     override fun findAllVariables() : Set<String> =
@@ -28,21 +28,21 @@ class Addition(var addends : MutableList<Polynom>) : Polynom(){
         }
     }
 
-    override fun addToConstant(fromValue: Double, value : Double) : Polynom?{
+    override fun addToConstant(fromValue: Int, value : Int) : Polynom?{
         for (polynom in addends.filter { it is Multiplication || it is Constant }){
             val added = polynom.addToConstant(fromValue, value)
             if (added != null) {
                 if (polynom is Constant){
                     addends.remove(polynom)
                 }
-                if (added.evaluate(mapOf()) != 0.0) addends.add(added)
+                if (added.evaluate(mapOf()) != 0) addends.add(added)
                 return added
             }
         }
         return null
     }
 
-    override fun addConstant(value: Double): Polynom? {
+    override fun addConstant(value: Int): Polynom? {
         for (polynom in addends.filter { it is Multiplication || it is Constant }){
             val added = polynom.addConstant(value)
             if (addObj(added, polynom)) return added
@@ -52,7 +52,7 @@ class Addition(var addends : MutableList<Polynom>) : Polynom(){
         return added
     }
 
-    override fun removeConstant(value: Double): Polynom? {
+    override fun removeConstant(value: Int): Polynom? {
         for (polynom in addends.filter { it is Multiplication || it is Constant }){
             val added = polynom.removeConstant(value)
             if (removeObj(added, polynom)) return added
@@ -99,9 +99,9 @@ class Addition(var addends : MutableList<Polynom>) : Polynom(){
         if (added != null) {
             if (!(polynom is Multiplication)) {
                 addends.remove(added)
-            } else if (polynom.getMultiple().evaluate(mapOf()) == 0.0) {
+            } else if (polynom.getMultiple().evaluate(mapOf()) == 0) {
                 addends.remove(polynom)
-            } else if (polynom.getMultiple().evaluate(mapOf()) == 1.0) {
+            } else if (polynom.getMultiple().evaluate(mapOf()) == 1) {
                 addends.add(polynom.getPolynom())
                 addends.remove(polynom)
             }
@@ -115,10 +115,12 @@ class Addition(var addends : MutableList<Polynom>) : Polynom(){
         if (added != null) {
             if (!(polynom is Multiplication)) {
                 addends.remove(added)
-                addends.add(Multiplication(added, Constant(2.0)))
+                addends.add(Multiplication(added, Constant(2)))
             }
             return true
         }
         return false
     }
+
+    fun size() : Int = addends.size
 }

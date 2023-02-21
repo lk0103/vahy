@@ -3,7 +3,7 @@ package com.example.bakalarka.equation
 import com.example.vahy.equation.Addition
 
 class SystemOfEquations(var equations : List<Equation>) {
-    var solutions = mutableMapOf<String, Double>()
+    var solutions = mutableMapOf<String, Int>()
 
     init {
         if (!allBracketsSame()){
@@ -28,7 +28,7 @@ class SystemOfEquations(var equations : List<Equation>) {
         val variables = findVariables()
         solutions = mutableMapOf()
         for (v in variables)
-            solutions[v] = 0.0
+            solutions[v] = 0
 
         when (variables.size){
             1 -> solve1Var(variables[0])
@@ -50,7 +50,7 @@ class SystemOfEquations(var equations : List<Equation>) {
 
     fun solve1Var(variable: String){
         for (i in 1..30){
-            solutions[variable] = i.toDouble()
+            solutions[variable] = i
             setEquationSolutions()
             if ((0 until equations.size).all { ix ->
                     equations[ix].leftEqualsRight()})
@@ -61,9 +61,9 @@ class SystemOfEquations(var equations : List<Equation>) {
 
     fun solve2Var(variable: List<String>){
         for (i in 1..30){
-            solutions[variable[0]] = i.toDouble()
+            solutions[variable[0]] = i
             for (j in 1..30) {
-                solutions[variable[1]] = j.toDouble()
+                solutions[variable[1]] = j
                 setEquationSolutions()
                 if ((0 until equations.size).all { ix ->
                         equations[ix].leftEqualsRight()
@@ -76,11 +76,11 @@ class SystemOfEquations(var equations : List<Equation>) {
 
     fun solve3Var(variable: List<String>){
         for (i in 1..30){
-            solutions[variable[0]] = i.toDouble()
+            solutions[variable[0]] = i
             for (j in 1..30) {
-                solutions[variable[1]] = j.toDouble()
+                solutions[variable[1]] = j
                 for (k in 1..30) {
-                    solutions[variable[2]] = k.toDouble()
+                    solutions[variable[2]] = k
                     setEquationSolutions()
                     if ((0 until equations.size).all { ix ->
                             equations[ix].leftEqualsRight()

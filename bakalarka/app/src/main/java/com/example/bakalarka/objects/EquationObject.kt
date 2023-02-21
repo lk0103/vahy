@@ -3,9 +3,8 @@ package com.example.bakalarka.objects
 import android.graphics.*
 import com.example.vahy.objects.ScreenObject
 
-open class EquationObject(collidable : Boolean = false,
-                          protected var draggable : Boolean = true)
-    : ScreenObject(collidable)  {
+open class EquationObject(dragFrom : Boolean = false, dragTo : Boolean = false)
+    : ScreenObject(dragFrom, dragTo)  {
     var widthBordingBox = 0
     var heightBordingBox = 0
 
@@ -26,7 +25,7 @@ open class EquationObject(collidable : Boolean = false,
             width -= 5
             height -= 5
         }
-        if (image.width * 3 / 2 < width || image.height * 3 / 2 < height){
+        if (image.width < width || image.height < height){
             reloadImage(width, height)
             return
         }
@@ -47,10 +46,6 @@ open class EquationObject(collidable : Boolean = false,
             paint
         )
     }
-
-    override fun isIn(x1 : Int, y1 : Int) : Boolean =
-        (x1 >= x - widthBordingBox / 2 && x1 <= x + widthBordingBox / 2 &&
-                y1 >= y - heightBordingBox / 2 && y1 <= y + heightBordingBox / 2)
 
     open fun makeCopy() : EquationObject {
         return EquationObject()
@@ -75,7 +70,7 @@ open class EquationObject(collidable : Boolean = false,
         y = newY
     }
 
-    fun onTouch(x1 : Int, y1: Int) : Boolean =
-        if (! draggable) false
-        else isIn(x1, y1)
+    override fun isIn(x1 : Int, y1: Int) : Boolean =
+        (x1 >= x - widthBordingBox / 2 && x1 <= x + widthBordingBox / 2 &&
+                y1 >= y - heightBordingBox / 2 && y1 <= y + heightBordingBox / 2)
 }

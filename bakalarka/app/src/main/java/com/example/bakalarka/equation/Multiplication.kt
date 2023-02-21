@@ -12,7 +12,7 @@ class Multiplication(private var polynom : Polynom,
 
     fun getPolynom() : Polynom = polynom
 
-    override fun evaluate(variables : Map<String, Double>): Double =
+    override fun evaluate(variables : Map<String, Int>): Int =
         polynom.evaluate(variables) * multiple.evaluate(variables)
 
     override fun findAllVariables(): Set<String> = polynom.findAllVariables()
@@ -28,19 +28,19 @@ class Multiplication(private var polynom : Polynom,
         return multiple == other.multiple && polynom == other.polynom
     }
 
-    override fun addToConstant(fromValue: Double, value : Double) : Polynom? {
+    override fun addToConstant(fromValue: Int, value : Int) : Polynom? {
         if (polynom is Bracket) return null
         val added = polynom.addToConstant(fromValue, value)
         return decrement(added)
     }
 
-    override fun addConstant(value: Double): Polynom? {
+    override fun addConstant(value: Int): Polynom? {
         if (polynom is Bracket) return null
         val added = polynom.addConstant(value)
         return increment(added)
     }
 
-    override fun removeConstant(value: Double): Polynom? {
+    override fun removeConstant(value: Int): Polynom? {
         if (polynom is Bracket) return null
         val added = polynom.removeConstant(value)
         return decrement(added)

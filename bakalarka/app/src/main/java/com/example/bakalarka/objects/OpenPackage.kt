@@ -10,13 +10,14 @@ import androidx.core.graphics.drawable.toBitmap
 import com.example.bakalarka.R
 import com.example.bakalarka.equation.Bracket
 import com.example.bakalarka.equation.Equation
+import com.example.bakalarka.equation.SystemOfEquations
 import com.example.bakalarka.objects.EquationObject
 import com.example.bakalarka.objects.ContainerForEquationBoxes
-import com.example.bakalarka.objects.Package
+import com.example.vahy.equation.Addition
 import com.example.vahy.equation.Polynom
 
-class OpenPackage(context : Context, touchable : Boolean = true)
-    : ContainerForEquationBoxes(context, touchable) {
+class OpenPackage(context : Context, dragFrom : Boolean = true, dragTo : Boolean = true)
+    : ContainerForEquationBoxes(context, dragFrom, dragTo) {
 
 
     init {
@@ -71,10 +72,10 @@ class OpenPackage(context : Context, touchable : Boolean = true)
         }
     }
 
-    override fun addEquationObjIntoHolder(obj : EquationObject, eq : Equation?) {
+    override fun addEquationObjIntoHolder(obj : EquationObject, sysEq : SystemOfEquations?) {
         if (obj is com.example.bakalarka.objects.Package)
             return
-        super.addEquationObjIntoHolder(obj, eq)
+        super.addEquationObjIntoHolder(obj, sysEq)
     }
 
     override fun isIn(x1 : Int, y1 : Int) : Boolean =
@@ -84,4 +85,8 @@ class OpenPackage(context : Context, touchable : Boolean = true)
     fun getInsideObjects() : List<EquationObject> =
         equationObjectBoxes.flatMap { it.insideObject }.toList()
 
+
+    fun getBracket() : Addition =
+        if (polynom.size() > 0) Addition(mutableListOf(Bracket(polynom)))
+        else Addition(mutableListOf())
 }

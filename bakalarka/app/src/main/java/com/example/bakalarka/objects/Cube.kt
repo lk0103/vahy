@@ -7,9 +7,9 @@ import androidx.core.graphics.drawable.toBitmap
 import com.example.bakalarka.R
 
 class Cube(private val context: Context, value : Int,
-           touchable : Boolean = false,
-           draggable : Boolean = true)
-    : ScaleVariable(value, touchable, draggable) {
+           dragFrom : Boolean = false,
+           dragTo : Boolean = true)
+    : ScaleVariable(value, dragFrom, dragTo) {
 
     init {
         image = ContextCompat.getDrawable(context, R.drawable.cube1)!!.toBitmap()
@@ -22,7 +22,7 @@ class Cube(private val context: Context, value : Int,
     }
 
     override fun makeCopy(): EquationObject =
-        setParametersOfCopy(Cube(context , value, touchable, draggable))
+        setParametersOfCopy(Cube(context , value, dragFrom, dragTo))
 
     override fun evaluate(): Int = value
 }

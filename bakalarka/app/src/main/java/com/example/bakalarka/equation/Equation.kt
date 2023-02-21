@@ -3,7 +3,7 @@ package com.example.bakalarka.equation
 import com.example.vahy.equation.Addition
 
 class Equation(val left : Addition, val right : Addition) {
-    var solutions = mutableMapOf<String, Double>()
+    var solutions = mutableMapOf<String, Int>()
 
     fun findAllVariables() = (left.findAllVariables().toSet() +
             right.findAllVariables().toSet()).toList()
@@ -26,7 +26,7 @@ class Equation(val left : Addition, val right : Addition) {
 
     override fun toString() : String = left.toString() + " = " + right.toString()
 
-    fun setSolution(s : MutableMap<String, Double>){
+    fun setSolution(s : MutableMap<String, Int>){
         solutions = s
     }
 

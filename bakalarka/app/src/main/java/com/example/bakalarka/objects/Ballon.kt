@@ -10,9 +10,9 @@ import androidx.core.graphics.drawable.toBitmap
 import com.example.bakalarka.R
 
 class Ballon(private val context: Context, value : Int,
-             touchable : Boolean = false,
-             draggable : Boolean = true)
-    : ScaleValue(value, touchable, draggable) {
+             dragFrom : Boolean = false,
+             dragTo : Boolean = false)
+    : ScaleValue(value, dragFrom, dragTo) {
 
     init {
         image = ContextCompat.getDrawable(context, R.drawable.ballon1)!!.toBitmap()
@@ -57,7 +57,7 @@ class Ballon(private val context: Context, value : Int,
     }
 
     override fun makeCopy(): EquationObject =
-        setParametersOfCopy(Ballon(context, value, touchable, draggable))
+        setParametersOfCopy(Ballon(context, value, dragFrom, dragTo))
 
     override fun evaluate(): Int = value
 

@@ -1,13 +1,12 @@
 package com.example.bakalarka.objects
 
 import android.graphics.*
-import android.view.MotionEvent
 import com.example.vahy.objects.ScreenObject
 import kotlin.math.ceil
 
 class ObjectsToChooseFrom (private var insideObject :
                            MutableList<EquationObject>)
-    : ScreenObject(false) {
+    : ScreenObject(true, false) {
     val collums = 2
     var rows = Math.ceil(insideObject.size.toDouble() / collums.toDouble()).toInt()
 
@@ -88,10 +87,10 @@ class ObjectsToChooseFrom (private var insideObject :
     }
 
     override fun returnDraggedObject(x1: Int, y1: Int): EquationObject? =
-        insideObject.filter { it.onTouch(x1, y1)}.firstOrNull()?.makeCopy()
+        insideObject.filter { it.isIn(x1, y1)}.firstOrNull()?.makeCopy()
 
     override fun returnClickedObject(x1: Int, y1: Int): EquationObject? =
-        insideObject.filter { it.onTouch(x1, y1)}.firstOrNull()
+        insideObject.filter { it.isIn(x1, y1)}.firstOrNull()
 
     fun getInsideObjects() : MutableList<EquationObject> = insideObject
 

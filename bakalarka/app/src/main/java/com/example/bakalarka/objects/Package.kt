@@ -7,9 +7,9 @@ import androidx.core.graphics.drawable.toBitmap
 import com.example.bakalarka.R
 
 
-class Package(private val context: Context, touchable : Boolean = false,
-              draggable : Boolean = true)
-    : EquationObject(touchable, draggable)  {
+class Package(private val context: Context, dragFrom : Boolean = false,
+              dragTo : Boolean = false)
+    : EquationObject(dragFrom, dragTo)  {
     var insideObject = mutableListOf<EquationObject>()
     private var maxNumberOfVariableTypes = 1
 
@@ -24,7 +24,7 @@ class Package(private val context: Context, touchable : Boolean = false,
     }
 
     override fun makeCopy(): EquationObject =
-        setParametersOfCopy(Package(context, touchable, draggable))
+        setParametersOfCopy(Package(context, dragFrom, dragTo))
 
     override fun setParametersOfCopy(copy : EquationObject) : EquationObject {
         (copy as Package).insideObject = mutableListOf<EquationObject>()

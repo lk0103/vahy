@@ -5,9 +5,9 @@ import android.graphics.Paint
 import android.graphics.Rect
 
 open class ScaleValue(protected var value : Int,
-                      touchable : Boolean = false,
-                      draggable : Boolean = true)
-    : EquationObject(touchable, draggable)  {
+                      dragFrom : Boolean = false,
+                      dragTo : Boolean = false)
+    : EquationObject(dragFrom, dragTo)  {
 
 
     override fun draw(canvas: Canvas, paint: Paint) {
