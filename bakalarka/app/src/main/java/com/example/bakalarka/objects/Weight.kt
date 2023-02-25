@@ -24,7 +24,6 @@ class Weight(private val context: Context, value : Int,
     override fun makeCopy(): EquationObject =
         setParametersOfCopy(Weight(context , value, dragFrom, dragTo))
 
-
     override fun drawValue(paint: Paint, canvas: Canvas) {
         val xBox = x
         val yBox = y + height / 4
@@ -47,4 +46,5 @@ class Weight(private val context: Context, value : Int,
             value--
     }
 
+    override fun isNotValidValue(): Boolean = value <= 0
 }

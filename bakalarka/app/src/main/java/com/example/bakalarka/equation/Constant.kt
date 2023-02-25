@@ -3,6 +3,11 @@ package com.example.vahy.equation
 import com.example.bakalarka.equation.Bracket
 
 class Constant(protected var constant : Int) : Polynom() {
+
+    override fun simplify(): Polynom? =
+        if (constant == 0) null
+        else this
+
     override fun evaluate(variables : Map<String, Int>): Int = constant
 
     override fun toString(): String = constant.toString()
@@ -18,6 +23,11 @@ class Constant(protected var constant : Int) : Polynom() {
 
     fun decrement() {
         constant--
+    }
+
+    fun makeNegative(){
+        if (constant > 0)
+            constant = -constant
     }
 
     override fun addToConstant(fromValue: Int, value: Int): Polynom? =

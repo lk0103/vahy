@@ -61,7 +61,7 @@ class ArmOfScale(context : Context, private var angle : Float = 0F) :
 //            x + width / 2 + 5,
 //            y + heightOfScale / 5 + 5
 //        ), paint)
-
+//
 //        val posLeft = getPositionLeftHolder()
 //        val posRight = getPositionRightHolder()
 //        canvas.drawRect(Rect(

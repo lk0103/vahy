@@ -6,6 +6,11 @@ import com.example.vahy.equation.Polynom
 
 class Bracket(var polynom : Addition) : Polynom(){
 
+    override fun simplify(): Polynom? {
+        polynom.simplify()
+        return this
+    }
+
     override fun evaluate(variables : Map<String, Int>): Int =
         polynom.evaluate(variables)
 

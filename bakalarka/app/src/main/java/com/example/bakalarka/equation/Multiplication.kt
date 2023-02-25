@@ -8,6 +8,12 @@ class Multiplication(private var polynom : Polynom,
                      private var multiple : Constant
 ) : Polynom(){
 
+    override fun simplify(): Polynom? =
+        if (multiple.evaluate(mutableMapOf()) == 0) null
+        else if (multiple.evaluate(mutableMapOf()) == 1) polynom.simplify()
+        else this
+
+
     fun getMultiple() : Constant = multiple
 
     fun getPolynom() : Polynom = polynom

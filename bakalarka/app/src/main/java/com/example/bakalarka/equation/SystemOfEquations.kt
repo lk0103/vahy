@@ -1,5 +1,6 @@
 package com.example.bakalarka.equation
 
+import android.util.Log
 import com.example.vahy.equation.Addition
 
 class SystemOfEquations(var equations : List<Equation>) {
@@ -9,8 +10,10 @@ class SystemOfEquations(var equations : List<Equation>) {
         if (!allBracketsSame()){
             equations = listOf()
         }
-        solve()
+        Log.i("rovnica", "init systemOfEq: " + this.toString())
     }
+
+    fun hasSolution() : Boolean = solutions.size > 0
 
     fun findVariables() = equations.flatMap { it.findAllVariables() }.toSet().toList()
 
@@ -25,6 +28,7 @@ class SystemOfEquations(var equations : List<Equation>) {
         .toList().firstOrNull()
 
     fun solve() : Boolean{
+        Log.i("rovnica", "solve system rovnic: " + this.toString())
         val variables = findVariables()
         solutions = mutableMapOf()
         for (v in variables)

@@ -66,4 +66,5 @@ class Ballon(private val context: Context, value : Int,
             value++
     }
 
+    override fun isNotValidValue(): Boolean = value >= 0
 }

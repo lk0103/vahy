@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
+import android.util.Log
 import android.view.MotionEvent
 import com.example.bakalarka.objects.EquationObject
 import com.example.bakalarka.objects.ScaleValue
@@ -84,6 +85,7 @@ open class ScreenObject(var dragFrom : Boolean, var dragTo : Boolean){
         if (!(clickedObject is ScaleValue))
             return null
         (clickedObject as ScaleValue).increment()
+        Log.i("rovnica", "screenObj onDoubleTap: value: " + clickedObject.evaluate())
         return clickedObject
     }
 

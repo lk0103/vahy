@@ -11,11 +11,11 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.view.GestureDetectorCompat
-import com.example.bakalarka.equation.Bracket
 import com.example.bakalarka.equation.Equation
 import com.example.bakalarka.equation.SystemOfEquations
 import com.example.bakalarka.objects.*
 import com.example.vahy.equation.Addition
+import com.example.vahy.equation.Polynom
 import com.example.vahy.objects.*
 
 ///-------------!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!-------------------
@@ -42,6 +42,7 @@ class ScalesView(context: Context, attrs: AttributeSet)
 
     private var screenTouchDisabled = false
     private var angleOfScale = 0F
+    private var maxAngleScaleAnim = 5F
 
     private val leftHolder = HolderOfWeights(context, true, angleOfScale)
     private val rightHolder = HolderOfWeights(context, false, angleOfScale)
@@ -75,9 +76,6 @@ class ScalesView(context: Context, attrs: AttributeSet)
         screenObjects.add(ArmOfScale(context, angleOfScale))
         screenObjects.add(bin)
         screenObjects.add(objectsToChooseFrom)
-        rotateScale(-5F)
-        rotationScaleAnimation(5F)
-        //rotateScale(3F)
     }
 
     private fun manageOpenPackage() {
@@ -129,17 +127,22 @@ class ScalesView(context: Context, attrs: AttributeSet)
         try {
             loadEquation()
         }catch (e : java.lang.Exception){
-            equation = Equation(Addition(mutableListOf()), Addition(mutableListOf()))
-            equationSystem = SystemOfEquations(mutableListOf())
-            originalEqSys = SystemOfEquations(mutableListOf())
-            screenVariableToStringVar = mutableMapOf<String, String>(
-                Ball(context, 1)::class.toString() to "x",
-                Cube(context, 1)::class.toString() to "y",
-                Cylinder(context, 1)::class.toString() to "z",
-            )
+            defaultEquations()
+            loadEquation()
             return false
         }
         return true
+    }
+
+    private fun defaultEquations() {
+        equation = Equation(Addition(mutableListOf()), Addition(mutableListOf()))
+        equationSystem = SystemOfEquations(mutableListOf())
+        originalEqSys = SystemOfEquations(mutableListOf())
+        screenVariableToStringVar = mutableMapOf<String, String>(
+            Ball(context, 1)::class.toString() to "x",
+            Cube(context, 1)::class.toString() to "y",
+            Cylinder(context, 1)::class.toString() to "z",
+        )
     }
 
     private fun changeObjToChooseFromForNewEq(variableScreenTypes: MutableList<String>) {
@@ -178,8 +181,13 @@ class ScalesView(context: Context, attrs: AttributeSet)
                             packagePolynom.polynom,
                             screenVariableToStringVar
                         )
-                        changeInsideOfPackages()
+                    }else{
+                        (it as ContainerForEquationBoxes).setEquation(
+                            Addition(mutableListOf()),
+                            screenVariableToStringVar
+                        )
                     }
+                    changeInsideOfPackages()
                 }
             }
         }
@@ -302,11 +310,22 @@ class ScalesView(context: Context, attrs: AttributeSet)
     }
 
     private fun onTouchUp() {
-        if (draggedObject != null)
+        if (draggedObject != null && draggedFarEnough()) {
             droppedObject(draggedObject!!)
+        }
+        checkEquality()
         draggedObject = null
         draggedFrom = null
         this.invalidate()
+    }
+
+    fun checkEquality(){
+        val comparison = equation.compareLeftRight()
+        val newAngle = maxAngleScaleAnim * comparison
+        if (angleOfScale != newAngle){
+            rotationScaleAnimation(newAngle)
+        }
+        Log.i("equality", "check equality")
     }
 
     fun droppedObject(obj : EquationObject){
@@ -314,7 +333,7 @@ class ScalesView(context: Context, attrs: AttributeSet)
             removeDraggedObjFromContainer(draggedFrom, true)
         } else {
             containersToManipulate().forEach{ container ->
-                if (container != draggedFrom && container.isIn(obj)){
+                if (container.isIn(obj)){
                     dropObjIntoContainer(obj, container)
                     invalidate()
                     return
@@ -325,6 +344,20 @@ class ScalesView(context: Context, attrs: AttributeSet)
     }
 
     private fun dropObjIntoContainer(obj: EquationObject, container : ContainerForEquationBoxes) {
+        if (container != draggedFrom && container is HolderOfWeights
+            && draggedFrom is HolderOfWeights && !(obj is ScaleValue)){
+            return
+        }
+        if (container != draggedFrom && container is HolderOfWeights
+            && draggedFrom is HolderOfWeights && obj is ScaleValue){
+            container.substractValueFromOtherValueIDifferentHolder(draggedFrom as ContainerForEquationBoxes, obj, equationSystem)
+            return
+        }
+        if (container == draggedFrom && containersToManipulate().contains(draggedFrom)
+            && obj is ScaleValue){
+            container.addValueToOtherValueInTheSameHolder(obj, equationSystem)
+            return
+        }
         var eqObj = obj
         if (eqObj is Package){
             val variable = eqObj.insideObject.filter { it is ScaleVariable }.firstOrNull()
@@ -382,7 +415,7 @@ class ScalesView(context: Context, attrs: AttributeSet)
         var deltaAngle = 0.07F
         val countDownInterval = 20L
         val countDownTime = ((Math.max(targetAngle, angleOfScale) -
-                Math.min(targetAngle, angleOfScale)) / deltaAngle * countDownInterval).toLong()
+                Math.min(targetAngle, angleOfScale)) / deltaAngle * countDownInterval ).toLong()
         deltaAngle *= if (targetAngle > angleOfScale) 1 else -1
         object : CountDownTimer(countDownTime, countDownInterval){
             override fun onTick(p0: Long) {
@@ -391,7 +424,10 @@ class ScalesView(context: Context, attrs: AttributeSet)
             }
 
             override fun onFinish() {
+                angleOfScale = targetAngle
+                rotateScale(angleOfScale)
                 screenTouchDisabled = false
+                Log.i("equality", "angle: " + angleOfScale + " targetAngle: " + targetAngle)
             }
         }.start()
 
@@ -413,11 +449,15 @@ class ScalesView(context: Context, attrs: AttributeSet)
             obj.draw(canvas!!, paint)
         }
         if (draggedObject != null &&
-            (Math.abs(draggedObject!!.x - draggedObjOriginalPos.first) > draggedObject!!.width / 2
-                    ||
-             Math.abs(draggedObject!!.y  - draggedObjOriginalPos.second) > draggedObject!!.height / 2))
+            draggedFarEnough()
+        )
             draggedObject?.draw(canvas!!, paint)
     }
+
+    private fun draggedFarEnough() =
+        (Math.abs(draggedObject!!.x - draggedObjOriginalPos.first) > draggedObject!!.width / 2
+                ||
+                Math.abs(draggedObject!!.y - draggedObjOriginalPos.second) > draggedObject!!.height / 2)
 
     override fun onLongPress(event: MotionEvent?) {
         if (event == null) return

@@ -27,6 +27,7 @@ open class ContainerForEquationBoxes(protected val context: Context,
         equationObjectBoxes.flatMap { it.returnListInsideVariableTypes() }.toList()
 
     fun setEquation(p : Addition, screenVarToStr : MutableMap<String, String>){
+        equationObjectBoxes = mutableListOf()
         polynom = p
         screenVariableToStringVar = screenVarToStr
         p.addends.forEach { pol ->
@@ -38,9 +39,9 @@ open class ContainerForEquationBoxes(protected val context: Context,
         if (pol is Constant) {
             val value = pol.getValue()
             if (value < 0)
-                addEquationObjIntoHolder(Ballon(context, value.toInt()))
+                addEquationObjIntoHolder(Ballon(context, value))
             else if (value > 0)
-                addEquationObjIntoHolder(Weight(context, value.toInt()))
+                addEquationObjIntoHolder(Weight(context, value))
         } else if (pol is Variable) {
             val type =
                 screenVariableToStringVar.filterValues { it == pol.getVariable() }.keys.firstOrNull()!!
@@ -59,6 +60,7 @@ open class ContainerForEquationBoxes(protected val context: Context,
     }
 
     open fun addEquationObjIntoHolder(obj : EquationObject, sysEq : SystemOfEquations? = null){
+        Log.i("rovnica", "container add obj into holder: " + polynom)
         var box = findBoxByObjType(obj)
         if (box?.isFull() ?: false) box = null
 
@@ -72,12 +74,69 @@ open class ContainerForEquationBoxes(protected val context: Context,
             }catch (e : java.lang.Exception){
                 removeBox(box)
                 throw java.lang.Exception("maximum capacity of boxes")
+                return
             }
         }
 
         box.addObject(obj)
         if (sysEq != null) addObjToPolynom(obj, sysEq)
     }
+
+    fun addValueToOtherValueInTheSameHolder(obj : EquationObject, sysEq: SystemOfEquations){
+        if (obj !is ScaleValue){
+            return
+        }
+        val originalObj = getDraggedObject()
+        if (originalObj == null || originalObj !is ScaleValue ) return
+
+        val box = equationObjectBoxes.filter { ((obj is Weight && it is WeightBox)
+                || (obj is Ballon && it is BallonBox)) && it.isIn(obj) }
+                                    .sortedBy { it.z }.firstOrNull()
+        if (box == null) return
+
+        val overlappingObj = box.getOverlappingScreenValue(obj, originalObj)
+        if (overlappingObj == null) return
+        addToConstant(overlappingObj.evaluate(), 1)
+        addToConstant(originalObj.evaluate(), -1)
+        overlappingObj.add(1)
+        originalObj.add(-1)
+        if (originalObj.isNotValidValue()){
+            removeDraggedObject(sysEq, true)
+        }
+        if (overlappingObj.isNotValidValue()){
+            removeDraggedObject(sysEq, true, overlappingObj)
+        }
+    }
+
+    fun substractValueFromOtherValueIDifferentHolder(originalHolder : ContainerForEquationBoxes,
+                                                     obj : EquationObject,
+                                                     sysEq: SystemOfEquations){
+        if (obj !is ScaleValue){
+            return
+        }
+        val originalObj = originalHolder.getDraggedObject()
+        if (originalObj == null || originalObj !is ScaleValue) return
+
+        val box = equationObjectBoxes.filter { ((obj is Weight && it is WeightBox)
+                || (obj is Ballon && it is BallonBox)) && it.isIn(obj) }
+            .sortedBy { it.z }.firstOrNull()
+        if (box == null) return
+
+        val overlappingObj = box.getOverlappingScreenValue(obj, originalObj)
+        if (overlappingObj == null) return
+        val incValue = if(obj is Weight) -1 else 1
+        addToConstant(overlappingObj.evaluate(), incValue)
+        originalHolder.addToConstant(originalObj.evaluate(), incValue)
+        overlappingObj.add(incValue)
+        originalObj.add(incValue)
+        if (originalObj.isNotValidValue()){
+            originalHolder.removeDraggedObject(sysEq, true)
+        }
+        if (overlappingObj.isNotValidValue()){
+            removeDraggedObject(sysEq, true, overlappingObj)
+        }
+    }
+
 
     private fun addObjToPolynom(obj : EquationObject, sysEq: SystemOfEquations){
         if (obj is ScaleValue){
@@ -88,7 +147,7 @@ open class ContainerForEquationBoxes(protected val context: Context,
             val bracket = sysEq.findBracket()
             if (bracket != null) polynom.addBracket(bracket)
         }
-        Log.i("rovnica", "container addObject: " + polynom)
+        Log.i("rovnica", "container addObject to polynom: " + polynom)
     }
 
     private fun removeObjFromPolynom(obj : EquationObject?, sysEq: SystemOfEquations){
@@ -107,7 +166,8 @@ open class ContainerForEquationBoxes(protected val context: Context,
 
     private fun addToConstant(toValue : Int, value : Int){
         polynom.addToConstant(toValue, value)
-        Log.i("rovnica", "container addToConstant: " + polynom)
+        Log.i("rovnica", "container addToConstant: tovalue: " + toValue +
+                " value: " + value + " rovnica: "+ polynom)
     }
 
     private fun removeBox(box: EquationObjectBox?) {
@@ -147,12 +207,18 @@ open class ContainerForEquationBoxes(protected val context: Context,
         else if (obj is Package) PackageBox()
         else EquationObjectBox()
 
-    fun removeDraggedObject(sysEq : SystemOfEquations, delete : Boolean = false){
+    fun removeDraggedObject(sysEq : SystemOfEquations, delete : Boolean = false,
+                            deletedObj : EquationObject? = getDraggedObject()){
         if (delete){
-            removeObjFromPolynom(getDraggedObject(), sysEq)
+            removeObjFromPolynom(deletedObj, sysEq)
+            Log.i("rovnica", "remove dragged: " + polynom + " dragged value: " + deletedObj?.evaluate())
         }
         for (box in equationObjectBoxes){
-            box.removeDraggedObject(delete)
+            if (deletedObj == getDraggedObject()) {
+                box.removeDraggedObject(delete)
+            }else if (deletedObj != null){
+                box.removeObject(deletedObj)
+            }
         }
         equationObjectBoxes = equationObjectBoxes.filter { it.insideObject.size > 0 }.toMutableList()
         changeSizeInsideObj()
@@ -186,7 +252,7 @@ open class ContainerForEquationBoxes(protected val context: Context,
         return clickedObj.filter { it != null }.sortedBy { it?.z }.firstOrNull()
     }
 
-    private fun getDraggedObject() : EquationObject? =
+    fun getDraggedObject() : EquationObject? =
         equationObjectBoxes.map { it.getDraggedObject() }.filter { it != null }.firstOrNull()
 
     override fun returnPackages() : MutableList<Package> =

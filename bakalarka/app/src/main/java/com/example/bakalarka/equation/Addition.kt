@@ -5,6 +5,23 @@ import com.example.bakalarka.equation.Bracket
 
 class Addition(var addends : MutableList<Polynom>) : Polynom(){
 
+    override fun simplify() : Polynom?{
+        val toRemove = mutableListOf<Polynom>()
+        val toAdd = mutableListOf<Polynom>()
+        addends.forEach { p ->
+            val simplified = p.simplify()
+            if (simplified == null) {
+                toRemove.add(p)
+            }else if (simplified != p){
+                toRemove.add(p)
+                toAdd.add(simplified)
+            }
+        }
+        addends.removeAll(toRemove)
+        addends.addAll(toAdd)
+        return this
+    }
+
     override fun evaluate(variables : Map<String, Int>): Int =
         addends.map { it.evaluate(variables) }.sum()
 

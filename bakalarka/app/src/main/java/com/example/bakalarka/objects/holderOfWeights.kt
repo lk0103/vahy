@@ -131,7 +131,7 @@ class HolderOfWeights(context: Context,
         val r = widthOfScale / 2 - padding
         val radians = 2 * Math.PI * -angle.toDouble() / 360
         return Pair((x + width - padding - (r - (r * Math.cos(radians)))).toInt(),
-            (y + heightOfScale / 5 - 2 * r * Math.sin(radians)).toInt())
+            (y + heightOfScale / 5 - r * Math.sin(radians)).toInt())
     }
 
     fun setPositionLeftHolder() {

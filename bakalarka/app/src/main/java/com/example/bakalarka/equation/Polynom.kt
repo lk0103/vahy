@@ -3,6 +3,8 @@ package com.example.vahy.equation
 import com.example.bakalarka.equation.Bracket
 
 abstract class Polynom {
+    open fun simplify() : Polynom? = null
+
     abstract fun evaluate(variables : Map<String, Int>) : Int
 
     open fun findAllVariables() : Set<String> = setOf()

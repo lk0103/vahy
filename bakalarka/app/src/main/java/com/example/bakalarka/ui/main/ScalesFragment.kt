@@ -1,7 +1,6 @@
 package com.example.bakalarka.ui.main
 
 import android.content.Context
-import android.media.audiofx.DynamicsProcessing.Eq
 import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
 import android.util.Log
@@ -11,13 +10,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import com.example.bakalarka.R
-import com.example.bakalarka.BR.*
 import com.example.bakalarka.MainActivity
 import com.example.bakalarka.databinding.FragmentScalesBinding
 import com.example.bakalarka.equation.Bracket
 import com.example.bakalarka.equation.Equation
 import com.example.bakalarka.equation.SystemOfEquations
-import com.example.bakalarka.objects.*
+import com.example.bakalarka.tasks.EquationsGenerator
 import com.example.vahy.equation.Addition
 import com.example.vahy.equation.Constant
 import com.example.vahy.equation.Multiplication
@@ -61,17 +59,44 @@ class ScalesFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProvider(this).get(ScalesViewModel::class.java)
 
-
+        ////default rovnica
         val left = Addition(mutableListOf(
-                    Multiplication(Bracket( Addition(mutableListOf(
-                        Multiplication(Variable("x"), Constant(2)),
-                        Constant(2)))), Constant(2))))
+            Multiplication(Bracket( Addition(mutableListOf(
+                Multiplication(Variable("x"), Constant(2)),
+                Constant(2)))), Constant(2))))
         val right = Addition(mutableListOf(
             Constant(9),
             Constant(4),
             Constant(3)
         ))
-        val sysEq = SystemOfEquations(listOf(Equation(left, right)))
+        var eq = Equation(left, right)
+        var sysEq = SystemOfEquations(listOf(eq))
+        sysEq.solve()
+
+        //generovanie rovnice
+        val generator = EquationsGenerator()
+        generator.rangeNumVarLeft = Pair(1, 4)
+        generator.rangeNumVarRight = Pair(0, 2)
+        generator.rangeSumConsLeft = Pair(0, 12)
+        generator.rangeSumConsRight = Pair(10, 20)
+        generator.rangeNumConsLeft = Pair(1, 2)
+        generator.rangeNumConsRight = Pair(0, 3)
+
+        generator.rangeNumBracketLeft = Pair(0, 0)
+        generator.rangeNumBracketRight = Pair(0, 0)
+        generator.rangeNumVarBracket = Pair(1, 2)
+        generator.rangeNumConsBracket = Pair(1, 2)
+        generator.rangeSumConsBracket = Pair(5, 15)
+
+        generator.rangeNumNegativeConsRight = Pair(1, 1)
+
+        for (i in (0 until 10)){
+            sysEq = generator.generateLinearEquationWithNaturalSolution()
+            Log.i("generate", sysEq.toString())
+            sysEq.solve()
+            Log.i("generate", sysEq.solutions.toString())
+        }
+
         ScalesView.setEquation(sysEq, 0)
 
 

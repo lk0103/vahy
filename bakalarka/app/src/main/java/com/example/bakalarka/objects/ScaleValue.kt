@@ -9,7 +9,6 @@ open class ScaleValue(protected var value : Int,
                       dragTo : Boolean = false)
     : EquationObject(dragFrom, dragTo)  {
 
-
     override fun draw(canvas: Canvas, paint: Paint) {
         canvas.drawBitmap(
             image,
@@ -37,4 +36,10 @@ open class ScaleValue(protected var value : Int,
     open fun decrement(){
         value--
     }
+
+    open fun add(v : Int){
+        value += v
+    }
+
+    open fun isNotValidValue() = false
 }
