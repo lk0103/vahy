@@ -15,12 +15,14 @@ class Package(private val context: Context, dragFrom : Boolean = false,
 
     init {
         image = ContextCompat.getDrawable(context, R.drawable.package1)!!.toBitmap()
-        image = Bitmap.createScaledBitmap(image, width, height, true);
+        image = Bitmap.createScaledBitmap(image!!, width, height, true);
     }
 
     override fun reloadImage(w : Int, h : Int){
+        if (image == null)
+            return
         image = ContextCompat.getDrawable(context, R.drawable.package1)!!.toBitmap()
-        image = Bitmap.createScaledBitmap(image, w, h, true)
+        image = Bitmap.createScaledBitmap(image!!, w, h, true)
     }
 
     override fun makeCopy(): EquationObject =

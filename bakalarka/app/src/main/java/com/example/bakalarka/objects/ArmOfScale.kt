@@ -31,10 +31,12 @@ class ArmOfScale(context : Context, private var angle : Float = 0F) :
         heightOfScale = defaultHeightScale
 
         rotate(angle)
-        image = Bitmap.createScaledBitmap(image, width, height, true);
+        image = Bitmap.createScaledBitmap(image!!, width, height, true);
     }
 
     override fun sizeChanged(w : Int, h : Int, xStart : Int, yStart : Int){
+        if (image == null)
+            return
         x = xStart
         y = yStart
         widthOfScale = w
@@ -45,38 +47,16 @@ class ArmOfScale(context : Context, private var angle : Float = 0F) :
         }
         width = widthOfScale
         height = heightOfScale * height / defaultHeightScale
-        image = Bitmap.createScaledBitmap(image, width, height, true)
+        image = Bitmap.createScaledBitmap(image!!, width, height, true)
         rotationMatrix()
     }
 
     //////////////////////////////////////
     override fun draw(canvas: Canvas, paint: Paint) {
-        canvas.drawBitmap(image, matrix, null)
-
+        if (image == null)
+            return
+        canvas.drawBitmap(image!!, matrix, null)
         paint.color = Color.RED
-
-//        canvas.drawRect(Rect(
-//            x + width / 2 - 5,
-//            y + heightOfScale / 5 - 5,
-//            x + width / 2 + 5,
-//            y + heightOfScale / 5 + 5
-//        ), paint)
-//
-//        val posLeft = getPositionLeftHolder()
-//        val posRight = getPositionRightHolder()
-//        canvas.drawRect(Rect(
-//            posLeft.first - 5,
-//            posLeft.second - 5,
-//            posLeft.first + 5,
-//            posLeft.second + 5
-//        ), paint)
-//
-//        canvas.drawRect(Rect(
-//            posRight.first - 5,
-//            posRight.second - 5,
-//            posRight.first + 5,
-//            posRight.second + 5
-//        ), paint)
     }
 
     private fun rotationMatrix() {

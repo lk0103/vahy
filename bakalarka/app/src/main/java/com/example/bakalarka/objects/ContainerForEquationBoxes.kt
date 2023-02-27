@@ -60,7 +60,6 @@ open class ContainerForEquationBoxes(protected val context: Context,
     }
 
     open fun addEquationObjIntoHolder(obj : EquationObject, sysEq : SystemOfEquations? = null){
-        Log.i("rovnica", "container add obj into holder: " + polynom)
         var box = findBoxByObjType(obj)
         if (box?.isFull() ?: false) box = null
 
@@ -89,13 +88,14 @@ open class ContainerForEquationBoxes(protected val context: Context,
         val originalObj = getDraggedObject()
         if (originalObj == null || originalObj !is ScaleValue ) return
 
-        val box = equationObjectBoxes.filter { ((obj is Weight && it is WeightBox)
-                || (obj is Ballon && it is BallonBox)) && it.isIn(obj) }
+        val box = equationObjectBoxes.filter { (it is WeightBox
+                || it is BallonBox) && it.isIn(obj) }
                                     .sortedBy { it.z }.firstOrNull()
         if (box == null) return
 
         val overlappingObj = box.getOverlappingScreenValue(obj, originalObj)
         if (overlappingObj == null) return
+
         addToConstant(overlappingObj.evaluate(), 1)
         addToConstant(originalObj.evaluate(), -1)
         overlappingObj.add(1)
@@ -117,9 +117,8 @@ open class ContainerForEquationBoxes(protected val context: Context,
         val originalObj = originalHolder.getDraggedObject()
         if (originalObj == null || originalObj !is ScaleValue) return
 
-        val box = equationObjectBoxes.filter { ((obj is Weight && it is WeightBox)
-                || (obj is Ballon && it is BallonBox)) && it.isIn(obj) }
-            .sortedBy { it.z }.firstOrNull()
+        val box = equationObjectBoxes.filter { ( it is WeightBox || it is BallonBox)
+                && it.isIn(obj) }.sortedBy { it.z }.firstOrNull()
         if (box == null) return
 
         val overlappingObj = box.getOverlappingScreenValue(obj, originalObj)

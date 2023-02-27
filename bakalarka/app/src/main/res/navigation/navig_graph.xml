@@ -2,11 +2,11 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/navig_graph"
-    app:startDestination="@id/scalesFragment">
+    app:startDestination="@id/fragment_scale">
 
 
     <fragment
-        android:id="@+id/scalesFragment"
+        android:id="@+id/fragment_scale"
         android:name="com.example.bakalarka.ui.main.ScalesFragment"
         android:label="ScalesFragment" />
 </navigation>

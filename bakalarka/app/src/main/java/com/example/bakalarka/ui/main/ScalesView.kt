@@ -60,6 +60,7 @@ class ScalesView(context: Context, attrs: AttributeSet)
     private var scaleWidthProportion = Pair(37, 48)
     private var widthView = 0
     private var heightView = 0
+    private var padding = 0
 
     private val paint = Paint()
     private var gDetector: GestureDetectorCompat? = null
@@ -196,6 +197,7 @@ class ScalesView(context: Context, attrs: AttributeSet)
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         widthView = w
         heightView = h
+        padding = heightView / 100
         changeSizeScreenObjects()
         super.onSizeChanged(w, h, oldw, oldh)
     }
@@ -219,18 +221,20 @@ class ScalesView(context: Context, attrs: AttributeSet)
 
     private fun changeSizeScale(obj: ScreenObject) {
         obj.sizeChanged(
-            widthView * scaleWidthProportion.first / scaleWidthProportion.second, heightView,
-            widthView / 500, heightView / 20
+            widthView * scaleWidthProportion.first / scaleWidthProportion.second - padding * 2,
+            heightView - padding * 2,
+            widthView / 500 + padding, heightView / 20 + padding
         )
     }
 
     private fun changeSizeBin(obj: ScreenObject, heightOfBin: Int) : Int{
         if (screenObjects.contains(openPackage) && screenObjects.contains(objectsToChooseFrom))
-            obj.sizeChanged(widthView / 10, heightView, widthView * 33 / 48, 10)
+            obj.sizeChanged(widthView / 10 - padding * 2, heightView - padding * 2,
+                widthView * 33 / 48 + padding, padding)
         else
             obj.sizeChanged(
-                widthView / 10, heightView,
-                widthView * 81 / 96, heightView - heightOfBin
+                widthView / 10 - padding * 2, heightView - padding * 2,
+                widthView * 81 / 96 + padding, heightView - heightOfBin + padding
             )
 
         return obj.height
@@ -239,25 +243,25 @@ class ScalesView(context: Context, attrs: AttributeSet)
     private fun changeSizeOpenPackage(obj: ScreenObject, heightOfBin: Int) {
         if (screenObjects.contains(objectsToChooseFrom))
             obj.sizeChanged(
-                widthView * 1 / 4, heightView, widthView * 7 / 8,
-                heightView - heightOfBin * 7 / 9
+                widthView * 1 / 4 - padding * 2, heightView - 2 * padding,
+                widthView * 7 / 8  + padding,heightView - heightOfBin * 7 / 9  + padding
             )
         else
             obj.sizeChanged(
-                widthView * 1 / 4, heightView - heightOfBin - 10, widthView * 7 / 8,
-                heightView / 4
+                widthView * 1 / 4 - padding * 2, heightView - heightOfBin - 10 - padding * 2,
+                widthView * 7 / 8 + padding, heightView / 4 + padding
             )
     }
 
     private fun changeSizeObjectsToChooseFrom(obj: ScreenObject) {
         if (screenObjects.contains(openPackage))
             obj.sizeChanged(
-                widthView / 5 - widthView / 25, heightView / 2,
+                widthView / 5 - widthView / 25 - padding * 2, heightView / 2 - padding * 2,
                 widthView * 4 / 5 + widthView / 50, 10
             )
         else
             obj.sizeChanged(
-                widthView / 5 - widthView / 25, heightView * 3 / 5,
+                widthView / 5 - widthView / 25 - padding * 2, heightView * 3 / 5 - padding * 2,
                 widthView * 4 / 5 + widthView / 50, 10
             )
     }

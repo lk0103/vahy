@@ -83,7 +83,7 @@ open class EquationObjectBox ()
 
     fun getOverlappingScreenValue(obj : ScaleValue, original : ScaleValue) : ScaleValue? =
         insideObject.filter { it is ScaleValue && it != original }.
-                filter { it::class == obj::class && it.isIn(obj)}.sortedBy { it.z }
+                filter { it.isIn(obj)}.sortedBy { it.z }
             .firstOrNull() as ScaleValue?
 
     fun getDraggedObject() : EquationObject? = draggedObj

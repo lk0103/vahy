@@ -25,11 +25,13 @@ class OpenPackage(context : Context, dragFrom : Boolean = true, dragTo : Boolean
         z = 2
         width = 600
         height = 600
-        image = Bitmap.createScaledBitmap(image, width, height, true)
+        image = Bitmap.createScaledBitmap(image!!, width, height, true)
         maxNumberOfBoxes = 2
     }
 
     override fun sizeChanged(w: Int, h: Int, xStart: Int, yStart: Int) {
+        if (image == null)
+            return
         x = xStart
         y = yStart
         height = w
@@ -38,7 +40,7 @@ class OpenPackage(context : Context, dragFrom : Boolean = true, dragTo : Boolean
             width -= 5
             height -= 5
         }
-        image = Bitmap.createScaledBitmap(image, width, height, true)
+        image = Bitmap.createScaledBitmap(image!!, width, height, true)
         changeSizeInsideObj()
     }
 
@@ -57,8 +59,10 @@ class OpenPackage(context : Context, dragFrom : Boolean = true, dragTo : Boolean
     }
 
     override fun draw(canvas: Canvas, paint: Paint){
+        if (image == null)
+            return
         canvas.drawBitmap(
-            image,
+            image!!,
             null,
             Rect(
                 x - width / 2, y - height / 2,

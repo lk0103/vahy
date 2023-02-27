@@ -8,6 +8,8 @@ import android.util.Log
 import android.view.MotionEvent
 import com.example.bakalarka.objects.EquationObject
 import com.example.bakalarka.objects.ScaleValue
+import com.example.bakalarka.objects.menu.DownIcon
+import com.example.bakalarka.objects.menu.UpIcon
 
 open class ScreenObject(var dragFrom : Boolean, var dragTo : Boolean){
     var x : Int  = 0
@@ -15,12 +17,16 @@ open class ScreenObject(var dragFrom : Boolean, var dragTo : Boolean){
     var z = 0
     var width = 0
     var height = 0
-    lateinit var image : Bitmap
+    var image : Bitmap? = null
 
 
     open fun draw(canvas: Canvas, paint: Paint){
+        if (image == null)
+            return
+        if (this is DownIcon || this is UpIcon)
+            Log.i("icons", "kreslenie: " + this::class.toString())
         canvas.drawBitmap(
-            image,
+            image!!,
             null,
             Rect(
                 x, y, (x + width), (y + height)
@@ -30,6 +36,8 @@ open class ScreenObject(var dragFrom : Boolean, var dragTo : Boolean){
     }
 
     open fun sizeChanged(w : Int, h : Int, xStart : Int, yStart : Int){
+        if (image == null)
+            return
         x = xStart
         y = yStart
         height = w * height / width
@@ -38,7 +46,17 @@ open class ScreenObject(var dragFrom : Boolean, var dragTo : Boolean){
             width -= 5
             height -= 5
         }
-        image = Bitmap.createScaledBitmap(image, width, height, true)
+        if (this is DownIcon || this is UpIcon)
+            Log.i("icons", "sizeChange: x: " + x + " y: " + y + " height: " + height +
+                        " width: " + width + " class: " + this::class)
+        if (image!!.width < width || image!!.height < height){
+            reloadImage(width, height)
+            return
+        }
+        image = Bitmap.createScaledBitmap(image!!, width, height, true)
+    }
+
+    open fun reloadImage(w : Int, h : Int){
     }
 
     open fun returnDraggedObject(x1 : Int, y1 : Int) : EquationObject?{

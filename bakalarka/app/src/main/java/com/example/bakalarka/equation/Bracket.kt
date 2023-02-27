@@ -7,7 +7,9 @@ import com.example.vahy.equation.Polynom
 class Bracket(var polynom : Addition) : Polynom(){
 
     override fun simplify(): Polynom? {
-        polynom.simplify()
+        val simplified = polynom.simplify()
+        if (simplified != null && simplified is Addition)
+            polynom = simplified
         return this
     }
 

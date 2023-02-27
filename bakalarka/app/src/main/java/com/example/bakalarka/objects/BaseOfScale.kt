@@ -15,6 +15,6 @@ class BaseOfScale(context : Context) :
         z = 2
         width = 1000
         height = 607
-        image = Bitmap.createScaledBitmap(image, width, height, true)
+        image = Bitmap.createScaledBitmap(image!!, width, height, true)
     }
 }

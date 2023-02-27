@@ -16,29 +16,35 @@ class Ballon(private val context: Context, value : Int,
 
     init {
         image = ContextCompat.getDrawable(context, R.drawable.ballon1)!!.toBitmap()
-        image = Bitmap.createScaledBitmap(image, width, height, true);
+        image = Bitmap.createScaledBitmap(image!!, width, height, true);
     }
 
     fun setImageParamForScale(){
+        if (image == null)
+            return
         image = ContextCompat.getDrawable(context, R.drawable.ballon2)!!.toBitmap()
         width = 200
         height = 300
-        image = Bitmap.createScaledBitmap(image, width, height, true)
+        image = Bitmap.createScaledBitmap(image!!, width, height, true)
     }
 
     override fun reloadImage(w : Int, h : Int){
+        if (image == null)
+            return
         image = ContextCompat.getDrawable(context, R.drawable.ballon2)!!.toBitmap()
-        image = Bitmap.createScaledBitmap(image, w, h, true)
+        image = Bitmap.createScaledBitmap(image!!, w, h, true)
     }
 
     override fun sizeChanged(w: Int, h: Int, xStart: Int, yStart: Int) {
+        if (image == null)
+            return
         x = xStart
         y = yStart
         width = h * width / height
         height = h
         widthBordingBox = w
         heightBordingBox = h
-        image = Bitmap.createScaledBitmap(image, width, height, true)
+        image = Bitmap.createScaledBitmap(image!!, width, height, true)
     }
 
     override fun drawValue(paint: Paint, canvas: Canvas) {

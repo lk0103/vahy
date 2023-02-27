@@ -10,8 +10,10 @@ open class ScaleValue(protected var value : Int,
     : EquationObject(dragFrom, dragTo)  {
 
     override fun draw(canvas: Canvas, paint: Paint) {
+        if (image == null)
+            return
         canvas.drawBitmap(
-            image,
+            image!!,
             null,
             Rect(
                 x - width / 2, y - height / 2,

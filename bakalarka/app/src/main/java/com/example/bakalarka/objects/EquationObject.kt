@@ -15,6 +15,8 @@ open class EquationObject(dragFrom : Boolean = false, dragTo : Boolean = false)
     }
 
     override fun sizeChanged(w: Int, h: Int, xStart: Int, yStart: Int) {
+        if (image == null)
+            return
         x = xStart
         y = yStart
         height = w
@@ -25,19 +27,21 @@ open class EquationObject(dragFrom : Boolean = false, dragTo : Boolean = false)
             width -= 5
             height -= 5
         }
-        if (image.width < width || image.height < height){
+        if (image!!.width < width || image!!.height < height){
             reloadImage(width, height)
             return
         }
-        image = Bitmap.createScaledBitmap(image, width, height, true)
+        image = Bitmap.createScaledBitmap(image!!, width, height, true)
     }
 
-    open fun reloadImage(w : Int, h : Int){
+    override fun reloadImage(w : Int, h : Int){
     }
 
     override fun draw(canvas: Canvas, paint: Paint) {
+        if (image == null)
+            return
         canvas.drawBitmap(
-            image,
+            image!!,
             null,
             Rect(
                 x - width / 2, y - height / 2,

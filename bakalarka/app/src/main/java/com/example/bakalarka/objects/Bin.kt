@@ -16,6 +16,6 @@ class Bin(context : Context) :
         z = 2
         width = 200
         height = 300
-        image = Bitmap.createScaledBitmap(image, width, height, true)
+        image = Bitmap.createScaledBitmap(image!!, width, height, true)
     }
 }

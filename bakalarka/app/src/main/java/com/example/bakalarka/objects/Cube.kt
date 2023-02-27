@@ -13,12 +13,14 @@ class Cube(private val context: Context, value : Int,
 
     init {
         image = ContextCompat.getDrawable(context, R.drawable.cube1)!!.toBitmap()
-        image = Bitmap.createScaledBitmap(image, width, height, true);
+        image = Bitmap.createScaledBitmap(image!!, width, height, true);
     }
 
     override fun reloadImage(w : Int, h : Int){
+        if (image == null)
+            return
         image = ContextCompat.getDrawable(context, R.drawable.cube1)!!.toBitmap()
-        image = Bitmap.createScaledBitmap(image, w, h, true)
+        image = Bitmap.createScaledBitmap(image!!, w, h, true)
     }
 
     override fun makeCopy(): EquationObject =

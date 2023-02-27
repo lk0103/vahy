@@ -37,11 +37,13 @@ class HolderOfWeights(context: Context,
         defaultHeightScale = 607
         widthOfScale = defaultWidthScale
         heightOfScale = defaultHeightScale
-        image = Bitmap.createScaledBitmap(image, width, height, true)
+        image = Bitmap.createScaledBitmap(image!!, width, height, true)
         rotateScale(angle)
     }
 
     override fun sizeChanged(w : Int, h : Int, xStart : Int, yStart : Int){
+        if (image == null)
+            return
         x = xStart
         y = yStart
         widthOfScale = w
@@ -58,7 +60,7 @@ class HolderOfWeights(context: Context,
         }
         originalX = x
         originalY = y
-        image = Bitmap.createScaledBitmap(image, width, height, true)
+        image = Bitmap.createScaledBitmap(image!!, width, height, true)
         rotateScale(angle)
         changeSizeInsideObj()
     }
@@ -76,38 +78,19 @@ class HolderOfWeights(context: Context,
     private fun calculateHeightBox() = heightWithoutBowl * 2 / 3
 
     override fun draw(canvas: Canvas, paint: Paint){
+        if (image == null)
+            return
         equationObjectBoxes.forEach { box ->
             box.draw(canvas, paint)
         }
         canvas.drawBitmap(
-            image,
+            image!!,
             null,
             Rect(
                 x, y, (x + width), (y + height)
             ),
             paint
         )
-
-        ///////////////////
-//        paint.color = Color.GREEN
-//        if (left) {
-//            val posLeft = getPositionLeftHolder()
-//            canvas.drawRect(Rect(
-//                posLeft.first - 30,
-//                posLeft.second - 30,
-//                posLeft.first + 30,
-//                posLeft.second + 30
-//            ), paint)
-//        }
-//        else {
-//            val posRight = getPositionRightHolder()
-//            canvas.drawRect(Rect(
-//                posRight.first - 30,
-//                posRight.second - 30,
-//                posRight.first + 30,
-//                posRight.second + 30
-//            ), paint)
-//        }
     }
 
     override fun addObjBasedOnPolynom(pol: Polynom) {
