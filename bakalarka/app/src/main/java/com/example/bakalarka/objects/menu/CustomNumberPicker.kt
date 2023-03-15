@@ -7,7 +7,7 @@ import android.graphics.Paint
 import android.util.Log
 import com.example.vahy.objects.ScreenObject
 
-class CustomNumberPicker(private val context: Context, private var value : Int = 1)
+class CustomNumberPicker(private val context: Context, var value : Int = 1)
     : ScreenObject(false, false) {
     private var min = 1
     private var max = 30
@@ -24,10 +24,10 @@ class CustomNumberPicker(private val context: Context, private var value : Int =
         height = h
         x = xStart
         y = yStart
-        upButton.sizeChanged(width / 2, height * 5 / 8 ,
-            xStart + width / 2 + width / 10, yStart - height / 6)
-        downButton.sizeChanged(width / 2, height * 5 / 8,
-            xStart + width / 2 + width / 10, yStart + height / 2 )
+        upButton.sizeChanged(width / 2, height * 6 / 8 ,
+            xStart + width / 2 + width / 10, yStart - height / 6 - height / 10)
+        downButton.sizeChanged(width / 2, height * 6 / 8,
+            xStart + width / 2 + width / 10, yStart + height / 2 - height / 10)
     }
 
     override fun draw(canvas: Canvas, paint: Paint){

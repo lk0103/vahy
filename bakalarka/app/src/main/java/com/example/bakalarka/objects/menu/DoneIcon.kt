@@ -8,27 +8,13 @@ import com.example.bakalarka.R
 import com.example.bakalarka.objects.ScaleVariable
 import com.example.vahy.objects.ScreenObject
 
-class DoneIcon(private val context: Context)
-    : ScreenObject(false, false) {
+class DoneIcon(context: Context)
+    : Icon(context) {
 
     init {
         image = ContextCompat.getDrawable(context, R.drawable.done)!!.toBitmap()
         width = 300
         height = 300
-        image = Bitmap.createScaledBitmap(image!!, width, height, true)
-    }
-
-    override fun sizeChanged(w: Int, h: Int, xStart: Int, yStart: Int) {
-        if (image == null)
-            return
-        x = xStart
-        y = yStart
-        height = w
-        width = w
-        if (image!!.width < width || image!!.height < height){
-            reloadImage(width, height)
-            return
-        }
         image = Bitmap.createScaledBitmap(image!!, width, height, true)
     }
 }

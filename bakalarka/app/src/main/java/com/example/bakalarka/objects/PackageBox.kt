@@ -23,11 +23,11 @@ class PackageBox: EquationObjectBox() {
             hMultiple += 2
             yShift = yDeltaFirst + row * yDelta
             (0..1).forEach { col ->
-                var wMultiple = 11
-                var wDivisor = 16
+                var wMultiple = 7
+                var wDivisor = 4
                 if (col >= 1){
-                    wMultiple = 7
-                    wDivisor = 4
+                    wMultiple = 11
+                    wDivisor = 16
                 }
 
                 positions.add(listOf(

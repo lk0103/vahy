@@ -1,6 +1,5 @@
 package com.example.bakalarka.equation
 
-import android.util.Log
 import com.example.vahy.equation.Addition
 import com.example.vahy.equation.Polynom
 
@@ -16,11 +15,34 @@ class Bracket(var polynom : Addition) : Polynom(){
     override fun evaluate(variables : Map<String, Int>): Int =
         polynom.evaluate(variables)
 
-    override fun findAllVariables(): Set<String> = polynom.findAllVariables()
+    override fun countNumVariableTypes(): MutableMap<String, Int> {
+        val numVarTypes = mutableMapOf<String, Int>()
+        polynom.addends.forEach { pol ->
+            pol.countNumVariableTypes().forEach{
+                val newValue = (numVarTypes.getOrDefault(it.key, 0) + it.value)
+                numVarTypes[it.key] = newValue
+            }
+        }
+        return numVarTypes
+    }
 
-    override fun findAllBrackets(): Set<Bracket> = setOf(this)
+    override fun countNumConsValues(): MutableMap<Int, Int> {
+        val numConsValuess = mutableMapOf<Int, Int>()
+        polynom.addends.forEach { pol ->
+            pol.countNumConsValues().forEach{
+                val newValue = (numConsValuess.getOrDefault(it.key, 0) + it.value)
+                numConsValuess[it.key] = newValue
+            }
+        }
+        return numConsValuess
+    }
 
-    override fun containsBracket() : Boolean = true
+    override fun countNumBrackets(): MutableMap<Bracket, Int> =
+        mutableMapOf(this to 1)
+
+    override fun setAllBracketInsides(bracketInside: Addition) {
+        polynom = bracketInside.copy() as Addition
+    }
 
     override fun toString(): String =
         "(" + polynom.toString() + ")"
@@ -35,4 +57,8 @@ class Bracket(var polynom : Addition) : Polynom(){
 
     override fun removeBracket(bracket: Bracket): Polynom? =
         if (this == bracket) this else null
+
+    override fun copy(): Polynom {
+        return Bracket(polynom.copy() as Addition)
+    }
 }

@@ -1,6 +1,5 @@
 package com.example.vahy.equation
 
-import android.util.Log
 import com.example.bakalarka.equation.Bracket
 
 //lava strana bude variable, constant, bracked a prava strana bude nasobok
@@ -15,7 +14,6 @@ class Multiplication(private var polynom : Polynom,
         return this
     }
 
-
     fun getMultiple() : Constant = multiple
 
     fun getPolynom() : Polynom = polynom
@@ -23,13 +21,42 @@ class Multiplication(private var polynom : Polynom,
     override fun evaluate(variables : Map<String, Int>): Int =
         polynom.evaluate(variables) * multiple.evaluate(variables)
 
-    override fun findAllVariables(): Set<String> = polynom.findAllVariables()
+    override fun countNumVariableTypes(): MutableMap<String, Int> {
+        val numVarTypes = mutableMapOf<String, Int>()
+        polynom.countNumVariableTypes().forEach{
+            val newValue = (numVarTypes.getOrDefault(it.key, 0)
+                    + it.value * multiple.evaluate(mapOf()))
+            numVarTypes[it.key] = newValue
+        }
+        return numVarTypes
+    }
 
-    override fun findAllBrackets(): Set<Bracket> = polynom.findAllBrackets()
+    override fun countNumConsValues(): MutableMap<Int, Int> {
+        val numConsValues = mutableMapOf<Int, Int>()
+        polynom.countNumConsValues().forEach{
+            val newValue = (numConsValues.getOrDefault(it.key, 0)
+                    + it.value * multiple.evaluate(mapOf()))
+            numConsValues[it.key] = newValue
+        }
+        return numConsValues
+    }
 
-    override fun containsBracket(): Boolean = polynom.containsBracket()
+    override fun countNumBrackets(): MutableMap<Bracket, Int> {
+        val numBrackets = mutableMapOf<Bracket, Int>()
+        polynom.countNumBrackets().forEach{
+            val newValue = (numBrackets.getOrDefault(it.key, 0)
+                    + it.value * multiple.evaluate(mapOf()))
+            numBrackets[it.key] = newValue
+        }
+        return numBrackets
+    }
 
-    override fun toString(): String = multiple.toString() + "*" + polynom.toString()
+    override fun setAllBracketInsides(bracketInside: Addition) {
+        polynom.setAllBracketInsides(bracketInside)
+    }
+
+    override fun toString(): String = multiple.toString() +
+            (if (polynom is Constant) "*" else "") + polynom.toString()
 
     override fun equals(other: Any?): Boolean {
         if (!(other is Multiplication)) return false
@@ -89,6 +116,10 @@ class Multiplication(private var polynom : Polynom,
             multiple.decrement()
         }
         return added
+    }
+
+    override fun copy(): Polynom {
+        return Multiplication(polynom.copy(), multiple.copy() as Constant)
     }
 
 }

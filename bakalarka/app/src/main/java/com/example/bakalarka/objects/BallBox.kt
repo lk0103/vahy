@@ -4,8 +4,8 @@ class BallBox: EquationObjectBox() {
 
     init {
         maxNumberOfObj = 6
-        cols = 3.0
-        rows = 3.0
+        cols = 2.9
+        rows = 2.9
     }
 
     override fun calculatePositions() {

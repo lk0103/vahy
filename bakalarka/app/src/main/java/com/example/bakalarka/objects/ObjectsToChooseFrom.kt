@@ -1,6 +1,7 @@
 package com.example.bakalarka.objects
 
 import android.graphics.*
+import com.example.vahy.objects.OpenPackage
 import com.example.vahy.objects.ScreenObject
 import kotlin.math.ceil
 
@@ -24,6 +25,20 @@ class ObjectsToChooseFrom (private var insideObject :
         changeSizeInsideObj()
     }
 
+    fun changeSizeInScaleView(widthView : Int, heightView : Int, padding : Int,
+                              openPackageVis : Boolean){
+        if (openPackageVis)
+            sizeChanged(
+                widthView / 5 - widthView / 25 - padding * 2, heightView / 2 - padding * 2,
+                widthView * 4 / 5 + widthView / 50, 10
+            )
+        else
+            sizeChanged(
+                widthView / 5 - widthView / 25 - padding * 2, heightView * 3 / 5 - padding * 2,
+                widthView * 4 / 5 + widthView / 50, 10
+            )
+    }
+
     override fun sizeChanged(w : Int, h : Int, xStart : Int, yStart : Int){
         width = w
         height = h
@@ -34,8 +49,8 @@ class ObjectsToChooseFrom (private var insideObject :
     }
 
     private fun changeSizeInsideObj() {
-        val widthBox = width / collums
-        val heightBox = height / rows
+        val widthBox = width / Math.max(collums, 1)
+        val heightBox = height / Math.max(rows, 1)
         val widthMargins = widthBox / 20
         val heightMargins = heightBox / 20
         val widthObj = widthBox - 2 * widthMargins
@@ -59,6 +74,8 @@ class ObjectsToChooseFrom (private var insideObject :
     }
 
     override fun draw(canvas: Canvas, paint: Paint){
+        if (!visibility)
+            return
         drawFrame(paint, canvas)
 
         for (obj in insideObject){
@@ -69,21 +86,20 @@ class ObjectsToChooseFrom (private var insideObject :
     private fun drawFrame(paint: Paint, canvas: Canvas) {
         paint.color = Color.BLACK
         paint.strokeWidth = 3F
-        canvas.drawRect(
-            Rect(
-                x, y, x + width, y + height
-            ),
-            paint
-        )
+        roundedRectangle(canvas, paint, x.toFloat(), y.toFloat(),
+            x + width.toFloat(), y + height.toFloat())
+
 
         paint.color = Color.WHITE
         paint.strokeWidth = 0F
-        canvas.drawRect(
-            Rect(
-                x + 3, y + 3, x + width - 3, y + height - 3
-            ),
-            paint
-        )
+        roundedRectangle(canvas, paint, x + 3F, y + 3F,
+            x + width - 3F, y + height - 3F)
+
+    }
+
+    private fun roundedRectangle(canvas: Canvas, paint: Paint, x1 : Float,
+                                 y1 : Float, x2 : Float, y2 : Float) {
+        canvas.drawRoundRect(RectF(x1, y1, x2, y2), 20F,20F, paint)
     }
 
     override fun returnDraggedObject(x1: Int, y1: Int): EquationObject? =

@@ -2,11 +2,47 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/navig_graph"
-    app:startDestination="@id/fragment_scale">
+    app:startDestination="@id/mainMenuFragment">
 
 
     <fragment
-        android:id="@+id/fragment_scale"
-        android:name="com.example.bakalarka.ui.main.ScalesFragment"
-        android:label="ScalesFragment" />
+        android:id="@+id/mainMenuFragment"
+        android:name="com.example.bakalarka.ui.main.MainMenuFragment"
+        android:label="ScalesFragment" >
+        <action
+            android:id="@+id/action_main_menu_to_solveEquationFragment"
+            app:destination="@id/solveEquationFragment" />
+        <action
+            android:id="@+id/action_main_menu_to_buildScaleFromEqFragment"
+            app:destination="@id/buildScaleFromEqFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/solveEquationFragment"
+        android:name="com.example.bakalarka.ui.main.SolveEquationFragment"
+        android:label="SolveEquationFragment" >
+        <action
+            android:id="@+id/action_solveEquationFragment_to_buildScaleFromEqFragment"
+            app:destination="@id/buildScaleFromEqFragment" />
+        <action
+            android:id="@+id/action_solveEquationFragment_to_main_menu"
+            app:destination="@id/mainMenuFragment" />
+        <action
+            android:id="@+id/action_solveEquationFragment_self"
+            app:destination="@id/solveEquationFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/buildScaleFromEqFragment"
+        android:name="com.example.bakalarka.ui.main.BuildScaleFromEqFragment"
+        android:label="BuildScaleFromEqFragment" >
+        <action
+            android:id="@+id/action_buildScaleFromEqFragment_to_solveEquationFragment"
+            app:destination="@id/solveEquationFragment" />
+        <action
+            android:id="@+id/action_buildScaleFromEqFragment_to_main_menu"
+            app:destination="@id/mainMenuFragment" />
+        <action
+            android:id="@+id/action_buildScaleFromEqFragment_self"
+            app:destination="@id/buildScaleFromEqFragment" />
+    </fragment>
 </navigation>

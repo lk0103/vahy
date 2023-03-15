@@ -7,12 +7,10 @@ import com.example.bakalarka.equation.SystemOfEquations
 import com.example.vahy.equation.*
 import kotlin.random.Random
 
-class EquationsGenerator {
+
+class EquationsGenerator : Generator(){
     var rangeNumVarLeft : Pair<Int, Int> = Pair(0, 0)
     var rangeNumVarRight : Pair<Int, Int> = Pair(0, 0)
-
-    var rangeSumConsLeft : Pair<Int, Int> = Pair(0, 0)
-    var rangeSumConsRight : Pair<Int, Int> = Pair(0, 0)
 
     var rangeNumConsLeft : Pair<Int, Int> = Pair(1, 1)
     var rangeNumConsRight : Pair<Int, Int> = Pair(1, 1)
@@ -27,127 +25,153 @@ class EquationsGenerator {
     var rangeSumConsBracket : Pair<Int, Int> = Pair(0, 0)
     var rangeNumConsBracket : Pair<Int, Int> = Pair(1, 1)
 
+    var enableConsLeft = false
+    var enableConsRight = false
+
+    var rangeVarSolutions :Pair<Int, Int> = Pair(1, 15)
+
+    private val variable = "x"
+
     fun generateLinearEquationWithNaturalSolution(): SystemOfEquations {
-        //////////////////////////////////////////////////////
-        ///zistit ci sa da nejako zabezpecit aby som generovala len s prirodzenym riesenim
-        var systemOfEquations = generateLinearEquation()
-        systemOfEquations.solve()
-        var count = 0
-        while ( !systemOfEquations.hasSolution()){
-            systemOfEquations = generateLinearEquation()
-            systemOfEquations.solve()
-            count++
+        val (left, right) = createLeftRightSidesEq()
+        if (Equation(left, right).hasSameNumOfVarOnBothSides()) {
+            Log.i("generate", "left: " + left+ " right: " + right+" same sides: " +  (Equation(left, right).hasSameNumOfVarOnBothSides())
+                    + " leftNumVArs: " + left.countNumVariableTypes() + " rightNumVArs: " + right.countNumVariableTypes())
+            return SystemOfEquations(mutableListOf())
         }
-        Log.i("generate", "pocet pokusov generovania: " + count)
+
+        val eq: Equation? = generateEqWithRandomSolution(left, right)
+
+        if (eq == null) return SystemOfEquations(mutableListOf())
+
+        val systemOfEquations = SystemOfEquations(mutableListOf(eq))
+        systemOfEquations.equations.forEach { it.simplify() }
+        systemOfEquations.solve()
         return systemOfEquations
     }
 
-    private fun generateLinearEquation(): SystemOfEquations {
+    private fun generateEqWithRandomSolution(
+        left: Addition,
+        right: Addition
+    ): Equation? {
+        var solutions = randomSolution()
+        var eq: Equation? = null
+        for (i in 0 until 100) {
+            eq = generateLinearEquation(left, right, solutions)
+            eq?.setSolution(solutions.toMutableMap())
+            if (eq != null && eq.compareLeftRight() == 0) {
+                Log.i("generate", "pocet generovani: " + (i + 1))
+                break
+            }
+
+            solutions = randomSolution()
+        }
+        return eq
+    }
+
+    private fun randomSolution(): Map<String, Int> =
+        mapOf(variable to randomBetweenMinMax(rangeVarSolutions.first, rangeVarSolutions.second))
+
+    private fun createPolynomOnlyVars(numVar: Int, numBracket: Int,
+                                      bracket: Bracket?): Addition{
+        val polynom = Addition(
+            (mutableListOf(
+                Multiplication(Variable(variable), Constant(numVar)),
+                Constant(0)
+            )).toMutableList()
+        )
+        if (bracket != null)
+            polynom.addends.add(Multiplication(bracket, Constant(numBracket)))
+        return polynom
+    }
+
+    private fun createLeftRightSidesEq(): Pair<Addition, Addition>{
         val numVarLeft = randomBetweenMinMax(rangeNumVarLeft.first, rangeNumVarLeft.second)
         val numVarRight = randomBetweenMinMax(rangeNumVarRight.first, rangeNumVarRight.second)
-        val sumConsLeft = randomBetweenMinMax(rangeSumConsLeft.first, rangeSumConsLeft.second)
-        val sumConsRight = randomBetweenMinMax(rangeSumConsRight.first, rangeSumConsRight.second)
         val numBracketsLeft = randomBetweenMinMax(rangeNumBracketLeft.first, rangeNumBracketLeft.second)
         val numBracketsRight = randomBetweenMinMax(rangeNumBracketRight.first, rangeNumBracketRight.second)
+
+        val bracket: Bracket? = generateBracket(numBracketsLeft, numBracketsRight)
+
+        val left = createPolynomOnlyVars(numVarLeft, numBracketsLeft, bracket)
+        val right = createPolynomOnlyVars(numVarRight, numBracketsRight, bracket)
+        return Pair(left, right)
+    }
+
+    private fun generateLinearEquation(left : Addition, right : Addition,
+                            solutions : Map<String, Int>): Equation? {
         val numNegativeLeft = randomBetweenMinMax(rangeNumNegativeConsLeft.first, rangeNumNegativeConsLeft.second)
         val numNegativeRight = randomBetweenMinMax(rangeNumNegativeConsRight.first, rangeNumNegativeConsRight.second)
 
-        var bracket : Bracket? = null
-        if (numBracketsLeft > 0 || numBracketsRight > 0){
-            val numVarBracket = randomBetweenMinMax(rangeNumVarBracket.first, rangeNumVarBracket.second)
-            val sumConsBracket = randomBetweenMinMax(rangeSumConsBracket.first, rangeSumConsBracket.second)
-            bracket = Bracket(createPolynom(numVarBracket, sumConsBracket,
-                            rangeNumConsBracket, null, 0))
+        val consNegLeft = createNegativeConstants(numNegativeLeft)
+        val consNegRight = createNegativeConstants(numNegativeRight)
+        var l = Addition((left.addends + consNegLeft).toMutableList())
+        var r = Addition((right.addends + consNegRight).toMutableList())
+
+        var (consLeft, consRight, rightConfig) = generateCons(l, r, solutions,
+            rangeNumConsLeft, rangeNumConsRight, enableConsLeft, enableConsRight)
+
+//        consLeft = createNegativeConstants(consLeft, numNegativeLeft)
+//        consRight = createNegativeConstants(consRight, numNegativeRight)
+
+        if (rightConfig) {
+            l = Addition((l.addends + consLeft).toMutableList())
+            r = Addition((r.addends + consRight).toMutableList())
+            return Equation(l, r)
         }
-
-        val left = createPolynom(numVarLeft, sumConsLeft, rangeNumConsLeft, bracket,
-                        numBracketsLeft, numNegativeLeft)
-        val right = createPolynom(numVarRight, sumConsRight, rangeNumConsRight, bracket,
-                        numBracketsRight, numNegativeRight)
-
-        val equation = Equation(left, right)
-        equation.simplify()
-        return SystemOfEquations(mutableListOf(equation))
+        return null
     }
 
-    private fun createPolynom(numVar: Int, sumCons: Int, rangeNumCons: Pair<Int, Int>,
-                              bracket: Bracket?, numBracket: Int,
-                              numNegative : Int = 0): Addition {
+    private fun generateBracket(numBracketsLeft: Int, numBracketsRight: Int): Bracket? {
+        var bracket: Bracket? = null
+        if (numBracketsLeft > 0 || numBracketsRight > 0) {
+            val numVarBracket = randomBetweenMinMax(rangeNumVarBracket.first, rangeNumVarBracket.second)
+            val sumConsBracket =
+                randomBetweenMinMax(rangeSumConsBracket.first, rangeSumConsBracket.second)
+            bracket = Bracket(
+                createPolynom(
+                    numVarBracket, sumConsBracket,
+                    rangeNumConsBracket, null, 0
+                )
+            )
+        }
+        return bracket
+    }
 
-        val polynoms = mutableListOf<Polynom>(
-            Multiplication(Variable("x"), Constant(numVar))
+
+    private fun createPolynom(numVar: Int, sumCons: Int, rangeNumCons: Pair<Int, Int>,
+                              bracket: Bracket?, numBracket: Int): Addition {
+
+        val polynoms : MutableList<Polynom> = mutableListOf(
+            Multiplication(Variable(variable), Constant(numVar))
         )
+
         if (bracket != null && numBracket > 0){
             polynoms.add(Multiplication(bracket, Constant(numBracket)))
         }
-        val constants = calculateCons(sumCons, rangeNumCons.first, rangeNumCons.second, numNegative)
+        val constants = calculateCons(sumCons, rangeNumCons.first, rangeNumCons.second)
         polynoms.addAll(constants)
         return Addition(polynoms)
     }
 
-    private fun calculateCons(sumCons: Int, minNumCons : Int, maxNumCons : Int,
-                              numNegative : Int) : MutableList<Constant>{
-        ////////////////////////////////////////////////////
-        ////VYPISOVAT MAXNUMCONS, MINNUMCONS, SUMCONS
-//        Log.i("generate", "sumCons: " + sumCons + " minNumCons: " + minNumCons +
-//        " maxNumCons: " + maxNumCons)
-//        Log.i("generate", "min NumCons: " + Math.min(sumCons, minNumCons) +
-//                " max NumCOns: " + Math.min(sumCons, maxNumCons + 1))
-        val numCons = if (Math.min(sumCons, maxNumCons) < Math.min(sumCons, minNumCons) ||
-            Math.min(sumCons, maxNumCons) < 0 || Math.min(sumCons, minNumCons) < 0) 0
-            else if (Math.min(sumCons, maxNumCons) == Math.min(sumCons, minNumCons)) Math.min(sumCons, maxNumCons)
-            else
-            Random.nextInt(
-                Math.min(sumCons, minNumCons),
-                Math.min(sumCons, maxNumCons + 1)
-            )
-//        Log.i("generate", "generated numCons: " + numCons)
-
-        val consBorders = divideConstant(numCons, sumCons)
-
-        return createConstants(consBorders, sumCons, numNegative)
-    }
-
-    private fun divideConstant(numCons: Int, sumCons: Int): MutableList<Int> {
-        val consBorders = mutableListOf<Int>()
-        (1 until numCons).forEach { i ->
-            var border = Random.nextInt(1, sumCons)
-            while (consBorders.contains(border)) {
-                border = Random.nextInt(1, sumCons)
-            }
-            consBorders.add(border)
-        }
-
-        consBorders.sort()
-        return consBorders
-    }
-
-    private fun createConstants(consBorders: MutableList<Int>, sumCons: Int,
-                            numNegative: Int): MutableList<Constant> {
-        val constants = mutableListOf<Constant>()
-        var previous = 0
-        (0 until consBorders.size).forEach { i ->
-            constants.add(Constant(consBorders[i] - previous))
-            previous = consBorders[i]
-        }
-        constants.add(Constant(sumCons - previous))
-        return if (numNegative > 0) createNegativeConstants(constants, numNegative)
-                else constants
-    }
-
-    private fun createNegativeConstants(constants : MutableList<Constant>, numNegative: Int)
+    private fun createNegativeConstants(numNegative: Int)
                                             : MutableList<Constant>{
-        constants.shuffle()
-        (0 until Math.min(constants.size, numNegative)).forEach { i ->
-            constants[i].makeNegative()
-        }
-        return constants
+        return (0 until numNegative).map { -Random.nextInt(2, 10) }
+            .map { Constant(it) }.toMutableList()
     }
 
-
-    private fun randomBetweenMinMax(min : Int, max: Int) =
-        if (max < min || max < 0 || min < 0) 0
-        else if (max == min) min
-        else Random.nextInt(min, max + 1)
-
+//    private fun createNegativeConstants(constants : MutableList<Constant>, numNegative: Int)
+//                                            : MutableList<Constant>{
+//        val sum = constants.map { it.evaluate(mapOf()) }.sum()
+//        constants.shuffle()
+//        (0 until Math.min(constants.size, numNegative)).forEach { i ->
+//            constants[i].makeNegative()
+//        }
+//        val positive = constants.filter { it.evaluate(mapOf()) > 0 }
+//        while (positive.map { it.evaluate(mapOf()) }.sum() != sum){
+//            val i = Random.nextInt(positive.size)
+//            positive[i].increment()
+//        }
+//        return constants
+//    }
 }

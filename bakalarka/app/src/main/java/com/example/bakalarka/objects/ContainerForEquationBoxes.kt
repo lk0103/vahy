@@ -1,8 +1,10 @@
 package com.example.bakalarka.objects
 
 import android.content.Context
+import android.media.audiofx.DynamicsProcessing.Eq
 import android.util.Log
 import android.view.MotionEvent
+import com.example.bakalarka.equation.Bracket
 import com.example.bakalarka.equation.SystemOfEquations
 import com.example.vahy.equation.*
 import com.example.vahy.objects.ScreenObject
@@ -13,12 +15,14 @@ open class ContainerForEquationBoxes(protected val context: Context,
                         ScreenObject(dragFrom, dragTo) {
     protected var equationObjectBoxes = mutableListOf<EquationObjectBox>()
     protected var maxNumberOfBoxes = 3
-    protected var polynom = Addition(mutableListOf())
-    protected var screenVariableToStringVar = mutableMapOf<String, String>(
-        Ball(context, 1)::class.toString() to "x",
-        Cube(context, 1)::class.toString() to "y",
-        Cylinder(context, 1)::class.toString() to "z",
-    )
+    var polynom = Addition(mutableListOf())
+    protected var screenVariableToStringVar = defaultScreenObjsToString()
+
+    private fun defaultScreenObjsToString() = mutableMapOf<String, String>(
+            Ball(context, 1)::class.toString() to "x",
+            Cube(context, 1)::class.toString() to "y",
+            Cylinder(context, 1)::class.toString() to "z",
+        )
 
     open fun changeSizeInsideObj() {
     }
@@ -33,33 +37,37 @@ open class ContainerForEquationBoxes(protected val context: Context,
         p.addends.forEach { pol ->
             addObjBasedOnPolynom(pol)
         }
+        if (polynom.addends.size <= 0 && screenVarToStr.size <= 0 ){
+            screenVariableToStringVar = defaultScreenObjsToString()
+        }
     }
 
-    open fun addObjBasedOnPolynom(pol: Polynom) {
+    open fun addObjBasedOnPolynom(pol: Polynom, sysEq : SystemOfEquations? = null) {
+
         if (pol is Constant) {
             val value = pol.getValue()
             if (value < 0)
-                addEquationObjIntoHolder(Ballon(context, value))
+                putEquationObjIntoHolder(Ballon(context, value), sysEq)
             else if (value > 0)
-                addEquationObjIntoHolder(Weight(context, value))
+                putEquationObjIntoHolder(Weight(context, value), sysEq)
         } else if (pol is Variable) {
             val type =
                 screenVariableToStringVar.filterValues { it == pol.getVariable() }.keys.firstOrNull()!!
             if (type == Ball(context, 1)::class.toString()) {
-                addEquationObjIntoHolder(Ball(context, 1))
+                putEquationObjIntoHolder(Ball(context, 1), sysEq)
             } else if (type == Cube(context, 1)::class.toString()) {
-                addEquationObjIntoHolder(Cube(context, 1))
+                putEquationObjIntoHolder(Cube(context, 1), sysEq)
             } else if (type == Cylinder(context, 1)::class.toString()) {
-                addEquationObjIntoHolder(Cylinder(context, 1))
+                putEquationObjIntoHolder(Cylinder(context, 1), sysEq)
             }
         } else if (pol is Multiplication){
             (0 until pol.getMultiple().evaluate(mutableMapOf())).forEach {
-                addObjBasedOnPolynom(pol.getPolynom())
+                addObjBasedOnPolynom(pol.getPolynom(), sysEq)
             }
         }
     }
 
-    open fun addEquationObjIntoHolder(obj : EquationObject, sysEq : SystemOfEquations? = null){
+    open fun putEquationObjIntoHolder(obj : EquationObject, sysEq : SystemOfEquations? = null){
         var box = findBoxByObjType(obj)
         if (box?.isFull() ?: false) box = null
 
@@ -72,7 +80,7 @@ open class ContainerForEquationBoxes(protected val context: Context,
                 return
             }catch (e : java.lang.Exception){
                 removeBox(box)
-                throw java.lang.Exception("maximum capacity of boxes")
+                throw java.lang.Exception(e.message)
                 return
             }
         }
@@ -145,6 +153,7 @@ open class ContainerForEquationBoxes(protected val context: Context,
         } else if (obj is Package){
             val bracket = sysEq.findBracket()
             if (bracket != null) polynom.addBracket(bracket)
+            else polynom.addBracket(Bracket(Addition(mutableListOf())))
         }
         Log.i("rovnica", "container addObject to polynom: " + polynom)
     }
@@ -174,7 +183,7 @@ open class ContainerForEquationBoxes(protected val context: Context,
         changeSizeInsideObj()
     }
 
-    private fun addEquationObjectBox(box : EquationObjectBox){
+    fun addEquationObjectBox(box : EquationObjectBox){
         if (equationObjectBoxes.size >= maxNumberOfBoxes){
             throw java.lang.Exception("maximum capacity of boxes")
         }
@@ -223,9 +232,11 @@ open class ContainerForEquationBoxes(protected val context: Context,
         changeSizeInsideObj()
     }
 
-    override fun onDoubleTap(event: MotionEvent): ScaleValue? {
+    override fun onDoubleTap(event: MotionEvent): EquationObject? {
         val clicked =  super.onDoubleTap(event)
-        if (clicked != null) addToConstant(clicked.evaluate() - 1, 1)
+        if (clicked is ScaleValue)
+            addToConstant(clicked.evaluate() - 1, 1)
+
         return clicked
     }
 

@@ -7,8 +7,8 @@ import androidx.core.graphics.drawable.toBitmap
 import com.example.bakalarka.R
 import com.example.vahy.objects.ScreenObject
 
-class DownIcon(private val context: Context)
-    : ScreenObject(false, false) {
+class DownIcon(context: Context)
+    : Icon(context) {
 
     init {
         image = ContextCompat.getDrawable(context, R.drawable.down_black)!!.toBitmap()

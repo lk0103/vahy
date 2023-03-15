@@ -2,20 +2,21 @@ package com.example.bakalarka.objects.menu
 
 import android.content.Context
 import android.graphics.*
+import android.util.Log
 import com.example.bakalarka.objects.ScaleVariable
 import com.example.vahy.objects.ScreenObject
 
-class TaskSolveEquation(private val context: Context, private var solutions : Map<ScaleVariable, Int>)
+class TaskSolveEquation(private val context: Context, private var variables : List<ScaleVariable>)
     : ScreenObject(false, false) {
     private var colums = 1
-    private var pickedNumbers = mutableMapOf<ScaleVariable, CustomNumberPicker>()
+    private var numberPickers = mutableMapOf<ScaleVariable, CustomNumberPicker>()
 
 
     init {
         width = 100
         height = 10
-        colums = solutions.size
-        solutions.keys.forEach { pickedNumbers[it] = CustomNumberPicker(context) }
+        colums = variables.size
+        variables.forEach { numberPickers[it] = CustomNumberPicker(context) }
     }
 
     override fun sizeChanged(w: Int, h: Int, xStart: Int, yStart: Int) {
@@ -28,31 +29,33 @@ class TaskSolveEquation(private val context: Context, private var solutions : Ma
 
     fun changeSizeObjects(){
         var i = 0
-        solutions.keys.forEach { variable ->
+        variables.forEach { variable ->
             val sizeColumn = width / colums
+            val xMargin = 0
             val w = sizeColumn / 6
             val h = height * 3 / 4
-            val startX = x + sizeColumn * i + sizeColumn / 2 - w
+            val startX = x + sizeColumn * i + sizeColumn / 2 - width / 10
             val startY = y + height / 2
             variable.sizeChanged(w, h, startX, startY)
 
-            val numberPicker = pickedNumbers[variable]
-            numberPicker?.sizeChanged(w * 2, height, startX + w * 3 / 2, y )
+            val numberPicker = numberPickers[variable]
+            numberPicker?.sizeChanged(w * 3 / 2 - xMargin * 2, height,
+                startX + width / 6 + xMargin, y )
             i++
         }
     }
 
     override fun draw(canvas: Canvas, paint: Paint){
-        solutions.keys.forEach { variable ->
+        variables.forEach { variable ->
             variable.draw(canvas, paint)
-            pickedNumbers[variable]?.draw(canvas, paint)
+            numberPickers[variable]?.draw(canvas, paint)
         }
 
 
         (0 until colums).forEach { j ->
             val sizeColumn = width / colums
             val xText = x + sizeColumn * j + sizeColumn / 2F
-            val yText = y + height * 2 / 3F
+            val yText = y + height * 3 / 4F
 
             paint.color = Color.BLACK
             paint.textSize = width / 10F
@@ -62,15 +65,19 @@ class TaskSolveEquation(private val context: Context, private var solutions : Ma
         }
     }
 
-    fun setSolutions(s : Map<ScaleVariable, Int>){
-        solutions = s
-        colums = solutions.size
-        solutions.keys.forEach { pickedNumbers[it] = CustomNumberPicker(context) }
+    fun setVariables(v : List<ScaleVariable>){
+        variables = v
+        colums = variables.size
+        numberPickers = mutableMapOf()
+        variables.forEach { numberPickers[it] = CustomNumberPicker(context) }
         changeSizeObjects()
     }
 
     fun touch(x1 : Int, y1: Int){
-        pickedNumbers.values.filter { it.isIn(x1, y1)}
+        numberPickers.values.filter { it.isIn(x1, y1)}
             .forEach { it.touch(x1, y1) }
     }
+
+    fun getUserSolutions() : Map<String, Int> =
+        numberPickers.mapValues { it.value.value }.mapKeys { it.key::class.toString() }
 }

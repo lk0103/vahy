@@ -4,8 +4,8 @@ class WeightBox: EquationObjectBox() {
 
     init {
         maxNumberOfObj = 8
-        cols = 1.5
-        rows = 3.0
+        cols = 1.4
+        rows = 2.4
     }
 
     override fun calculatePositions() {
@@ -23,10 +23,10 @@ class WeightBox: EquationObjectBox() {
             hMultiple += 2
             yShift = yDeltaFirst + row * yDelta
             (0..1).forEach { col ->
-                var wMultiple = 7
+                var wMultiple = 13
                 val wDivisor = 8
                 if (col >= 1){
-                    wMultiple = 13
+                    wMultiple = 7
                 }
 
                 positions.add(listOf(

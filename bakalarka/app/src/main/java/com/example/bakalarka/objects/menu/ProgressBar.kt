@@ -41,14 +41,18 @@ class ProgressBar(private val context: Context)
             y + height - widthBorder.toFloat()
         )
 
-        paint.color = ContextCompat.getColor(context, R.color.icons_color)
-        roundedRectangle(canvas, paint, x + widthBorder * 2F, y + widthBorder * 2F,
-            x + widthBar(), y + height - widthBorder * 2F)
+        if (value > 0) {
+            paint.color = ContextCompat.getColor(context, R.color.icons_color)
+            roundedRectangle(
+                canvas, paint, x + widthBorder * 2F, y + widthBorder * 2F,
+                x + widthBar(), y + height - widthBorder * 2F
+            )
+        }
     }
 
     private fun roundedRectangle(canvas: Canvas, paint: Paint, x1 : Float,
                                 y1 : Float, x2 : Float, y2 : Float) {
-        canvas.drawRoundRect(RectF(x1, y1, x2, y2), 50F,50F, paint)
+        canvas.drawRoundRect(RectF(x1, y1, x2, y2), 40F,40F, paint)
     }
 
     fun widthBar() : Float = (width - 3F * widthBorder) * value / maxValue

@@ -4,20 +4,13 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.content.ContextCompat
 import com.example.bakalarka.R
-import com.example.bakalarka.objects.ArmOfScale
-import com.example.bakalarka.objects.BaseOfScale
-import com.example.bakalarka.objects.HolderOfWeights
-import com.example.bakalarka.objects.ObjectsToChooseFrom
-import com.example.bakalarka.objects.menu.ArrowBackIcon
+import com.example.bakalarka.objects.menu.HomeIcon
 import com.example.bakalarka.objects.menu.ProgressBar
 import com.example.bakalarka.objects.menu.ReplayIcon
-import com.example.vahy.objects.Bin
-import com.example.vahy.objects.OpenPackage
 import com.example.vahy.objects.ScreenObject
 
 class TaskMainMenuView(context: Context, attrs: AttributeSet)
@@ -28,12 +21,14 @@ class TaskMainMenuView(context: Context, attrs: AttributeSet)
     var widthView = 1
     var heightView = 1
     private val paint = Paint()
+    var replayTask = false
+    var leaveTask = false
 
     init {
         val progressBar = ProgressBar(context)
         progressBar.updateValue(numberOfTasks)
         progressBar.updateMaxValue(maxNumberOfTasks)
-        screenObjects.add(ArrowBackIcon(context))
+        screenObjects.add(HomeIcon(context))
         screenObjects.add(progressBar)
         screenObjects.add(ReplayIcon(context))
     }
@@ -47,19 +42,19 @@ class TaskMainMenuView(context: Context, attrs: AttributeSet)
 
     private fun changeSizeScreenObjects() {
         screenObjects.forEach { obj ->
-            val widthIcon = widthView / 10
+            val widthIcon = widthView / 6
             val widthPadding = widthView / 100
             val heightPadding = heightView / 10
-            if (obj is ArrowBackIcon) {
+            if (obj is HomeIcon) {
                 obj.sizeChanged(
                     widthIcon - widthPadding * 2, heightView - 2 * heightPadding,
-                    widthPadding, heightPadding + heightView / 2 - widthIcon / 2
+                    widthPadding, heightView / 2 - widthIcon / 2
                 )
             } else if (obj is ReplayIcon) {
                 obj.sizeChanged(
                     widthIcon - widthPadding * 2, heightView - 2 * heightPadding,
                     widthView - widthIcon + widthPadding,
-                    heightPadding + heightView / 2 - widthIcon / 2
+                    heightView / 2 - widthIcon / 2
                 )
             } else if (obj is ProgressBar) {
                 obj.sizeChanged(
@@ -83,6 +78,30 @@ class TaskMainMenuView(context: Context, attrs: AttributeSet)
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
-        return super.onTouchEvent(event)
+        if (event == null) return true
+
+        val action = event.action
+        if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) {
+            val replayIcons = screenObjects.filter { it is ReplayIcon &&
+                    it.isIn(event.x.toInt(), event.y.toInt()) }
+            if (replayIcons.size > 0){
+                replayTask = true
+            }
+
+            val leaveIcons = screenObjects.filter { it is HomeIcon &&
+                    it.isIn(event.x.toInt(), event.y.toInt()) }
+            if (leaveIcons.size > 0){
+                leaveTask = true
+            }
+        }
+        return true
+    }
+
+    fun setProgressBarPar(numTasks : Int, currentTask : Int){
+        screenObjects.filter { it is ProgressBar }.map { it as ProgressBar }
+            .forEach {
+                it.updateValue(currentTask)
+                it.updateMaxValue(numTasks)
+            }
     }
 }

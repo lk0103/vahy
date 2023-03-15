@@ -9,7 +9,8 @@ class Variable(protected var variable : String) : Polynom(){
     override fun evaluate(variables : Map<String, Int>): Int =
         variables[variable] ?: 0
 
-    override fun findAllVariables(): Set<String> = setOf(variable)
+    override fun countNumVariableTypes(): MutableMap<String, Int> =
+        mutableMapOf(variable to 1)
 
     override fun toString(): String = variable
 
@@ -26,4 +27,8 @@ class Variable(protected var variable : String) : Polynom(){
 
     @JvmName("getVariable1")
     fun getVariable() : String = variable
+
+    override fun copy(): Polynom {
+        return Variable(variable)
+    }
 }

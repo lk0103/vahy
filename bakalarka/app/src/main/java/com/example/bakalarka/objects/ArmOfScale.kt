@@ -7,26 +7,24 @@ import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Rect
+import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.example.bakalarka.R
 import com.example.vahy.objects.ScreenObject
 import java.lang.Math.sin
 
-class ArmOfScale(context : Context, private var angle : Float = 0F) :
+class ArmOfScale(private val context : Context, private var angle : Float = 0F) :
     ScreenObject(false, false){
-    private var defaultWidthScale = 100
-    private var defaultHeightScale = 100
+    private val defaultWidthScale = 1000
+    private val defaultHeightScale = 607
     private var widthOfScale = 100
     private var heightOfScale = 100
     var matrix = Matrix()
     init {
         image = ContextCompat.getDrawable(context, R.drawable.arm_of_scale)!!.toBitmap()
         z = 2
-        width = 1000
-        height = 245
-        defaultWidthScale = 1000
-        defaultHeightScale = 607
+        defaultSizeValues()
         widthOfScale = defaultWidthScale
         heightOfScale = defaultHeightScale
 
@@ -34,9 +32,30 @@ class ArmOfScale(context : Context, private var angle : Float = 0F) :
         image = Bitmap.createScaledBitmap(image!!, width, height, true);
     }
 
+    private fun defaultSizeValues() {
+        width = 1000
+        height = 245
+    }
+
+    override fun reloadImage(w : Int, h : Int){
+        if (image == null)
+            return
+        image = ContextCompat.getDrawable(context, R.drawable.arm_of_scale)!!.toBitmap()
+    }
+
+    fun changeSizeInScaleView(widthView : Int, heightView : Int, padding : Int,
+                              scaleWidthProportion : Pair<Int, Int>){
+        sizeChanged(
+            widthView * scaleWidthProportion.first / scaleWidthProportion.second - padding * 2,
+            heightView - padding * 2,
+            widthView / 500 + padding, heightView / 20 + padding
+        )
+    }
+
     override fun sizeChanged(w : Int, h : Int, xStart : Int, yStart : Int){
         if (image == null)
             return
+        defaultSizeValues()
         x = xStart
         y = yStart
         widthOfScale = w
@@ -47,13 +66,17 @@ class ArmOfScale(context : Context, private var angle : Float = 0F) :
         }
         width = widthOfScale
         height = heightOfScale * height / defaultHeightScale
+        if (image!!.width < width || image!!.height < height){
+            reloadImage(width, height)
+        }
         image = Bitmap.createScaledBitmap(image!!, width, height, true)
         rotationMatrix()
     }
 
+
     //////////////////////////////////////
     override fun draw(canvas: Canvas, paint: Paint) {
-        if (image == null)
+        if (image == null && !visibility)
             return
         canvas.drawBitmap(image!!, matrix, null)
         paint.color = Color.RED
@@ -68,21 +91,5 @@ class ArmOfScale(context : Context, private var angle : Float = 0F) :
     fun rotate(a : Float){
         angle = a
         rotationMatrix()
-    }
-
-    fun getPositionLeftHolder() : Pair<Int, Int> {
-        val paddding = width * 17 / 96
-        val r = width / 2 - paddding
-        val radians = 2 * Math.PI * angle.toDouble() / 360
-        return Pair((x + paddding + (r - (r * Math.cos(radians)))).toInt(),
-            (y + heightOfScale / 5 - r * sin(radians)).toInt())
-    }
-
-    fun getPositionRightHolder() : Pair<Int, Int> {
-        val paddding = width * 37 / 192
-        val r = width / 2 - paddding
-        val radians = 2 * Math.PI * -angle.toDouble() / 360
-        return Pair((x + width - paddding - (r - (r * Math.cos(radians)))).toInt(),
-            (y + heightOfScale / 5 - 2 * r * sin(radians)).toInt())
     }
 }

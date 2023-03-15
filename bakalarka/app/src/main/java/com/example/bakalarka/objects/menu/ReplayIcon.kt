@@ -7,8 +7,8 @@ import androidx.core.graphics.drawable.toBitmap
 import com.example.bakalarka.R
 import com.example.vahy.objects.ScreenObject
 
-class ReplayIcon(private val context: Context)
-    : ScreenObject(false, false) {
+class ReplayIcon(context: Context)
+    : Icon(context) {
 
     init {
         image = ContextCompat.getDrawable(context, R.drawable.replay)!!.toBitmap()
@@ -17,17 +17,4 @@ class ReplayIcon(private val context: Context)
         image = Bitmap.createScaledBitmap(image!!, width, height, true)
     }
 
-    override fun sizeChanged(w: Int, h: Int, xStart: Int, yStart: Int) {
-        if (image == null)
-            return
-        x = xStart
-        y = yStart
-        height = w
-        width = w
-        if (image!!.width < width || image!!.height < height){
-            reloadImage(width, height)
-            return
-        }
-        image = Bitmap.createScaledBitmap(image!!, width, height, true)
-    }
 }

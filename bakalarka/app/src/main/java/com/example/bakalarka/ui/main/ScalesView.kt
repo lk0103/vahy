@@ -10,17 +10,16 @@ import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
+import androidx.core.content.ContextCompat
 import androidx.core.view.GestureDetectorCompat
+import com.example.bakalarka.R
 import com.example.bakalarka.equation.Equation
 import com.example.bakalarka.equation.SystemOfEquations
 import com.example.bakalarka.objects.*
 import com.example.vahy.equation.Addition
-import com.example.vahy.equation.Polynom
 import com.example.vahy.objects.*
+import java.lang.Exception
 
-///-------------!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!-------------------
-//double click na kos vrati do prvotneho obsahu vah
-//aby sa dalo z daneho obsahu vah urobit instancia rovnice alebo nacitat rovnica do vahy
 
 class ScalesView(context: Context, attrs: AttributeSet)
             : View(context, attrs), GestureDetector.OnGestureListener,
@@ -31,6 +30,8 @@ class ScalesView(context: Context, attrs: AttributeSet)
     private var draggedFrom : ContainerForEquationBoxes? = null
     private var clickedObject : EquationObject? = null
     private var maxNumberOfVariableTypes = 1
+    private var buildEquationTask = false
+
     private var equationSystem = SystemOfEquations(mutableListOf())
     private var originalEqSys = SystemOfEquations(mutableListOf())
     private var equation = Equation(Addition(mutableListOf()), Addition(mutableListOf()))
@@ -57,7 +58,10 @@ class ScalesView(context: Context, attrs: AttributeSet)
                         ))
     private var openPackage = OpenPackage(context)
 
-    private var scaleWidthProportion = Pair(37, 48)
+    private val scaleWidthSmaller = Pair(37, 48)
+    private val scaleWidthBigger = Pair(4, 5)
+    private var scaleWidthProportion = scaleWidthSmaller
+
     private var widthView = 0
     private var heightView = 0
     private var padding = 0
@@ -70,68 +74,92 @@ class ScalesView(context: Context, attrs: AttributeSet)
         this.gDetector = GestureDetectorCompat(context, this)
         gDetector?.setOnDoubleTapListener(this)
         gDetector?.setIsLongpressEnabled(true)
-        manageOpenPackage()
         screenObjects.add(BaseOfScale(context))
         screenObjects.add(leftHolder)
         screenObjects.add(rightHolder)
         screenObjects.add(ArmOfScale(context, angleOfScale))
         screenObjects.add(bin)
         screenObjects.add(objectsToChooseFrom)
+        screenObjects.add(openPackage)
     }
 
-    private fun manageOpenPackage() {
-        if (objectsToChooseFrom.getInsideObjects().filter { it is Package }.count() > 0) {
-            if (! screenObjects.contains(openPackage)) screenObjects.add(openPackage)
-        }else{
-            if (screenObjects.contains(openPackage)) screenObjects.remove(openPackage)
-        }
+    fun setBuildEquationTask(isBuild : Boolean, isOpenPackage : Boolean){
+        buildEquationTask = isBuild
+        setTouchabilityOfOpenPackage(true)
+        setVisibilityOfObjsDependingOnBracket(true)
+        setVisibilityOpenPackage(isOpenPackage)
+        changeLayout(isOpenPackage)
+        if (!isOpenPackage) setObjectsToChooseFrom(objectsToChooseFrom.getInsideObjects()
+            .filter { it !is Package }.toMutableList())
     }
 
     fun setTouchabilityOfOpenPackage(touchable : Boolean){
-        openPackage.dragFrom = touchable
-        openPackage.dragTo = touchable
-        manageOpenPackage()
-    }
-
-    fun setVisibilityObjectToChooseFrom(visible : Boolean){
-        if (!visible){
-            screenObjects.remove(objectsToChooseFrom)
-            scaleWidthProportion = Pair(4, 5)
-            if (widthView > 0 && heightView > 0 ) changeSizeScreenObjects()
-            invalidate()
-            return
-        }
-        if (!screenObjects.contains(objectsToChooseFrom)){
-            screenObjects.add(objectsToChooseFrom)
-            scaleWidthProportion = Pair(37, 48)
-            if (widthView > 0 && heightView > 0 ) changeSizeScreenObjects()
-            invalidate()
-        }
+        screenObjects.filter { it is OpenPackage }.forEach {
+                it.dragFrom = touchable
+                it.dragTo = touchable
+            }
     }
 
     fun setObjectsToChooseFrom(objects : MutableList<EquationObject>){
-        objectsToChooseFrom.setInsideObject(objects)
-        manageOpenPackage()
+        screenObjects.filter { it is ObjectsToChooseFrom }
+            .forEach { (it as ObjectsToChooseFrom).setInsideObject(objects) }
         invalidate()
     }
 
-    fun setEquation(sysOfEq : SystemOfEquations, indexEq : Int) : Boolean{
-        if (! sysOfEq.allBracketsSame() || indexEq >= sysOfEq.equations.size)
+    fun setVisibilityOfObjsDependingOnBracket(containsBrackets : Boolean){
+        setVisibilityObjToChooseFrom(containsBrackets)
+        setVisibilityOpenPackage(containsBrackets)
+
+        changeLayout(containsBrackets)
+        invalidate()
+    }
+
+    private fun changeLayout(containsBrackets: Boolean) {
+        if (containsBrackets) scaleWidthProportion = scaleWidthSmaller
+        else scaleWidthProportion = scaleWidthBigger
+
+        if (widthView > 0 && heightView > 0) changeSizeScreenObjects()
+    }
+
+    private fun setVisibilityObjToChooseFrom(containsBrackets: Boolean) {
+        screenObjects.filter { it is ObjectsToChooseFrom }
+            .forEach { it.visibility = containsBrackets }
+    }
+
+    private fun setVisibilityOpenPackage(containsBrackets: Boolean) {
+        screenObjects.filter { it is OpenPackage }
+            .forEach { it.visibility = containsBrackets }
+    }
+
+
+    fun setEquation(sysOfEq : SystemOfEquations, indexEq : Int,
+                    varScreenTypes : MutableMap<String, String>? = null) : Boolean{
+        if (varScreenTypes == null) defaultEquations()
+        if (! sysOfEq.allBracketsSame() || indexEq >= sysOfEq.equations.size
+            || indexEq < 0 ) {
+            loadEquation()
             return false
+        }
         equation = sysOfEq.equations[indexEq]
         equationSystem = sysOfEq
-        originalEqSys = sysOfEq
-        val variableScreenTypes: MutableList<String> = createMapingForScreenVariablesForNewEq()
+        originalEqSys = sysOfEq.copy()
+        val variableScreenTypes: MutableList<String> =
+            varScreenTypes?.keys?.toMutableList() ?: createMapingForScreenVariablesForNewEq()
 
-        changeObjToChooseFromForNewEq(variableScreenTypes)
+        if (!buildEquationTask)
+            setVisibilityOfObjsDependingOnBracket(equationSystem.containsBracket())
 
         try {
             loadEquation()
+            if (!buildEquationTask)
+                changeObjToChooseFromForNewEq(variableScreenTypes)
+            checkEquality()
         }catch (e : java.lang.Exception){
             defaultEquations()
             loadEquation()
             return false
         }
+        invalidate()
         return true
     }
 
@@ -144,14 +172,27 @@ class ScalesView(context: Context, attrs: AttributeSet)
             Cube(context, 1)::class.toString() to "y",
             Cylinder(context, 1)::class.toString() to "z",
         )
+        setObjectsToChooseFrom(mutableListOf(
+            Ball(context, 1),
+            Cube(context, 1),
+            Cylinder(context, 1),
+            Ballon(context, -1),
+            Weight(context, 1),
+            Package(context)
+        ))
     }
 
     private fun changeObjToChooseFromForNewEq(variableScreenTypes: MutableList<String>) {
+        if (screenObjects.filter { it is ObjectsToChooseFrom }.all { !it.visibility })
+            return
+
         val containsPackages = equationSystem.containsBracket()
+
         setObjectsToChooseFrom(objectsToChooseFrom.getInsideObjects().filter {
             it is ScaleValue || (containsPackages && it is Package) ||
                     variableScreenTypes.contains(it::class.toString())
-        }.toMutableList())
+        }.filter { eqObj -> !containsPackages || openPackage.getInsideObjects().any { packageObj ->
+            eqObj::class == packageObj::class } }.toMutableList())
     }
 
     private fun createMapingForScreenVariablesForNewEq(): MutableList<String> {
@@ -179,20 +220,28 @@ class ScalesView(context: Context, attrs: AttributeSet)
                 openPackage -> {
                     if (packagePolynom != null) {
                         (it as ContainerForEquationBoxes).setEquation(
-                            packagePolynom.polynom,
-                            screenVariableToStringVar
-                        )
+                            packagePolynom.polynom, screenVariableToStringVar)
                     }else{
                         (it as ContainerForEquationBoxes).setEquation(
-                            Addition(mutableListOf()),
-                            screenVariableToStringVar
-                        )
+                            Addition(mutableListOf()), screenVariableToStringVar)
                     }
                     changeInsideOfPackages()
                 }
             }
         }
     }
+
+    fun restoreOriginalEquation(){
+        setEquation(originalEqSys, equationSystem.equations.indexOf(equation),
+            screenVariableToStringVar)
+    }
+
+    fun getSolutions() : Map<String, Int> {
+        val solutions = equationSystem.solutions
+        return screenVariableToStringVar.mapValues { solutions[it.value] ?: 0 }
+    }
+
+    fun getEquations() : List<Equation> = equationSystem.equations
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         widthView = w
@@ -203,68 +252,28 @@ class ScalesView(context: Context, attrs: AttributeSet)
     }
 
     private fun changeSizeScreenObjects() {
-        var heightOfBin = screenObjects.filter { it is Bin }.firstOrNull()?.height ?: 0
         screenObjects.forEach { obj ->
-            if (obj is BaseOfScale || obj is ArmOfScale || obj is HolderOfWeights) {
-                changeSizeScale(obj)
+            if (obj is BaseOfScale) {
+                obj.changeSizeInScaleView(widthView, heightView, padding, scaleWidthProportion)
+            } else if (obj is ArmOfScale) {
+                obj.changeSizeInScaleView(widthView, heightView, padding, scaleWidthProportion)
+            } else if (obj is HolderOfWeights) {
+                obj.changeSizeInScaleView(widthView, heightView, padding, scaleWidthProportion)
             } else if (obj is Bin) {
-                heightOfBin = changeSizeBin(obj, heightOfBin)
+                obj.changeSizeInScaleView(widthView, heightView, padding,
+                    screenObjects.filter { it is ObjectsToChooseFrom }.all { it.visibility },
+                    screenObjects.filter { it is OpenPackage }.all { it.visibility })
             } else if (obj is OpenPackage) {
-                changeSizeOpenPackage(obj, heightOfBin)
+                obj.changeSizeInScaleView(widthView, heightView, padding,
+                    screenObjects.filter { it is ObjectsToChooseFrom }.all { it.visibility })
             } else if (obj is ObjectsToChooseFrom) {
-                changeSizeObjectsToChooseFrom(obj)
-
+                obj.changeSizeInScaleView(widthView, heightView, padding,
+                    screenObjects.filter { it is OpenPackage }.all { it.visibility })
             } else
                 obj.sizeChanged(widthView, heightView, 0, 0)
         }
     }
 
-    private fun changeSizeScale(obj: ScreenObject) {
-        obj.sizeChanged(
-            widthView * scaleWidthProportion.first / scaleWidthProportion.second - padding * 2,
-            heightView - padding * 2,
-            widthView / 500 + padding, heightView / 20 + padding
-        )
-    }
-
-    private fun changeSizeBin(obj: ScreenObject, heightOfBin: Int) : Int{
-        if (screenObjects.contains(openPackage) && screenObjects.contains(objectsToChooseFrom))
-            obj.sizeChanged(widthView / 10 - padding * 2, heightView - padding * 2,
-                widthView * 33 / 48 + padding, padding)
-        else
-            obj.sizeChanged(
-                widthView / 10 - padding * 2, heightView - padding * 2,
-                widthView * 81 / 96 + padding, heightView - heightOfBin + padding
-            )
-
-        return obj.height
-    }
-
-    private fun changeSizeOpenPackage(obj: ScreenObject, heightOfBin: Int) {
-        if (screenObjects.contains(objectsToChooseFrom))
-            obj.sizeChanged(
-                widthView * 1 / 4 - padding * 2, heightView - 2 * padding,
-                widthView * 7 / 8  + padding,heightView - heightOfBin * 7 / 9  + padding
-            )
-        else
-            obj.sizeChanged(
-                widthView * 1 / 4 - padding * 2, heightView - heightOfBin - 10 - padding * 2,
-                widthView * 7 / 8 + padding, heightView / 4 + padding
-            )
-    }
-
-    private fun changeSizeObjectsToChooseFrom(obj: ScreenObject) {
-        if (screenObjects.contains(openPackage))
-            obj.sizeChanged(
-                widthView / 5 - widthView / 25 - padding * 2, heightView / 2 - padding * 2,
-                widthView * 4 / 5 + widthView / 50, 10
-            )
-        else
-            obj.sizeChanged(
-                widthView / 5 - widthView / 25 - padding * 2, heightView * 3 / 5 - padding * 2,
-                widthView * 4 / 5 + widthView / 50, 10
-            )
-    }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         if (event == null || screenTouchDisabled) return true
@@ -320,16 +329,18 @@ class ScalesView(context: Context, attrs: AttributeSet)
         checkEquality()
         draggedObject = null
         draggedFrom = null
+        Log.i("build", "rovnica: " + equationSystem)
         this.invalidate()
     }
 
     fun checkEquality(){
+        if (buildEquationTask)
+            return
         val comparison = equation.compareLeftRight()
         val newAngle = maxAngleScaleAnim * comparison
         if (angleOfScale != newAngle){
             rotationScaleAnimation(newAngle)
         }
-        Log.i("equality", "check equality")
     }
 
     fun droppedObject(obj : EquationObject){
@@ -349,10 +360,6 @@ class ScalesView(context: Context, attrs: AttributeSet)
 
     private fun dropObjIntoContainer(obj: EquationObject, container : ContainerForEquationBoxes) {
         if (container != draggedFrom && container is HolderOfWeights
-            && draggedFrom is HolderOfWeights && !(obj is ScaleValue)){
-            return
-        }
-        if (container != draggedFrom && container is HolderOfWeights
             && draggedFrom is HolderOfWeights && obj is ScaleValue){
             container.substractValueFromOtherValueIDifferentHolder(draggedFrom as ContainerForEquationBoxes, obj, equationSystem)
             return
@@ -362,26 +369,36 @@ class ScalesView(context: Context, attrs: AttributeSet)
             container.addValueToOtherValueInTheSameHolder(obj, equationSystem)
             return
         }
-        var eqObj = obj
-        if (eqObj is Package){
-            val variable = eqObj.insideObject.filter { it is ScaleVariable }.firstOrNull()
-            eqObj = if (variable is ScaleVariable) variable!! else eqObj
-        }
-        if ((eqObj is ScaleVariable && !possibleToAddVariableType(eqObj)) ||
-            (obj is Package && container is OpenPackage)) {
+//        var eqObj = obj
+//        if (eqObj is Package){
+//            Log.i("build", "obj is package")
+//            val variable = eqObj.insideObject.filter { it is ScaleVariable }.firstOrNull()
+//            eqObj = if (variable is ScaleVariable) variable!! else eqObj
+//        }
+//        if ((eqObj is ScaleVariable && !possibleToAddVariableType(eqObj)) ||
+//            (obj is Package && container is OpenPackage)) {
+//            Log.i("build", "not possible to add variable type")
+//            removeDraggedObjFromContainer(draggedFrom, false)
+//            return
+//        }
+        //nahradene
+        if ((obj is Package && container is OpenPackage)) {
+            Log.i("build", "not possible to add variable type")
             removeDraggedObjFromContainer(draggedFrom, false)
             return
         }
+
         try {
+            Log.i("build", "dropObj")
             val equationsWithOpenPackage = equationSystem.equations +
                     Equation(openPackage.getBracket(), openPackage.getBracket())
             val eqSys = SystemOfEquations(equationsWithOpenPackage)
-            container.addEquationObjIntoHolder(obj, eqSys)
+            container.putEquationObjIntoHolder(obj, eqSys)
             removeDraggedObjFromContainer(draggedFrom, true)
             if (container is OpenPackage)
                 changeInsideOfPackages()
-            Log.i("rovnica", "addObj: " + equation)
         }catch (e : java.lang.Exception){
+            Log.i("build", " " + e.message)
             removeDraggedObjFromContainer(draggedFrom, false)
         }
     }
@@ -389,21 +406,25 @@ class ScalesView(context: Context, attrs: AttributeSet)
     private fun changeInsideOfPackages(){
         containersToDragFrom().flatMap { it.returnPackages() }
             .forEach { it.putObjectsIn(openPackage.getInsideObjects().toMutableList()) }
+
+        equationSystem.setAllBracketInsides(openPackage.polynom)
+        Log.i("build", "openPackage: " + openPackage.polynom)
     }
 
-    private fun possibleToAddVariableType(obj : EquationObject) : Boolean {
-        val listOfVariables = containersToManipulate().flatMap { it.insideVariableTypes() }
-        var count = 0
-        val typeVariableClasses = listOf(Ball(context, 0), Cube(context, 0), Cylinder(context, 0))
-        typeVariableClasses.forEach { type ->
-            if (listOfVariables.any { it::class == type::class }) {
-                if (obj::class == type::class )
-                    return true
-                count++
-            }
-        }
-        return count < maxNumberOfVariableTypes
-    }
+    ///TOTO ASI NETREBA STACI AK ZMENIM OBSAH ObjectsToChooseFrom
+//    private fun possibleToAddVariableType(obj : EquationObject) : Boolean {
+//        val listOfVariables = containersToManipulate().flatMap { it.insideVariableTypes() }
+//        var count = 0
+//        val typeVariableClasses = listOf(Ball(context, 0), Cube(context, 0), Cylinder(context, 0))
+//        typeVariableClasses.forEach { type ->
+//            if (listOfVariables.any { it::class == type::class }) {
+//                if (obj::class == type::class )
+//                    return true
+//                count++
+//            }
+//        }
+//        return count < maxNumberOfVariableTypes
+//    }
 
     fun removeDraggedObjFromContainer(holder : ContainerForEquationBoxes?, delete: Boolean = false){
         if (holder == null)
@@ -411,16 +432,16 @@ class ScalesView(context: Context, attrs: AttributeSet)
         holder.removeDraggedObject(equationSystem, delete)
         if (delete && holder is OpenPackage)
             changeInsideOfPackages()
-        Log.i("rovnica", "removeDraggedObj: " + equation)
     }
 
     fun rotationScaleAnimation(targetAngle : Float){
         screenTouchDisabled = true
-        var deltaAngle = 0.07F
-        val countDownInterval = 20L
+        var deltaAngle = 0.08F
+        val countDownInterval = 18L
         val countDownTime = ((Math.max(targetAngle, angleOfScale) -
                 Math.min(targetAngle, angleOfScale)) / deltaAngle * countDownInterval ).toLong()
         deltaAngle *= if (targetAngle > angleOfScale) 1 else -1
+
         object : CountDownTimer(countDownTime, countDownInterval){
             override fun onTick(p0: Long) {
                 angleOfScale += deltaAngle
@@ -431,7 +452,6 @@ class ScalesView(context: Context, attrs: AttributeSet)
                 angleOfScale = targetAngle
                 rotateScale(angleOfScale)
                 screenTouchDisabled = false
-                Log.i("equality", "angle: " + angleOfScale + " targetAngle: " + targetAngle)
             }
         }.start()
 
@@ -448,7 +468,6 @@ class ScalesView(context: Context, attrs: AttributeSet)
     }
 
     override fun onDraw(canvas: Canvas?) {
-        canvas?.drawColor(Color.WHITE)
         for (obj in screenObjects) {
             obj.draw(canvas!!, paint)
         }
@@ -480,12 +499,33 @@ class ScalesView(context: Context, attrs: AttributeSet)
 
         for (obj in containersToDragFrom()) {
             clickedObject = obj.onDoubleTap(event)
+            if (clickedObject is Package && obj is ContainerForEquationBoxes){
+                unpackPackage(obj)
+            }
             if (clickedObject != null) {
                 break
             }
         }
         invalidate()
         return true
+    }
+
+    private fun unpackPackage(obj: ContainerForEquationBoxes) {
+        val bracket = equationSystem.findBracket()
+        if (bracket != null) {
+            val eqCopy = equationSystem.copy()
+            try {
+                obj.removeDraggedObject(equationSystem, true, clickedObject)
+                bracket.polynom.addends.forEach { polynom ->
+                    obj.addObjBasedOnPolynom(polynom, equationSystem)
+                }
+            } catch (e: Exception) {
+                setEquation(
+                    eqCopy, equationSystem.equations.indexOf(equation),
+                    screenVariableToStringVar
+                )
+            }
+        }
     }
 
     override fun onDown(p0: MotionEvent?): Boolean = true
@@ -505,10 +545,17 @@ class ScalesView(context: Context, attrs: AttributeSet)
 
     override fun onDoubleTapEvent(p0: MotionEvent?): Boolean = true
 
-    private fun containersToDragFrom() : List<ScreenObject> = screenObjects.filter { it.dragFrom }
+    private fun containersToDragFrom() : List<ScreenObject> =
+        screenObjects.filter { it.visibility && it.dragFrom }
 
     private fun containersToManipulate() : List<ContainerForEquationBoxes> = screenObjects.filter {
-        it is ContainerForEquationBoxes}.filter {it.dragFrom && it.dragTo} as List<ContainerForEquationBoxes>
+        it is ContainerForEquationBoxes}.filter {it.visibility && it.dragFrom && it.dragTo}
+            as List<ContainerForEquationBoxes>
 
-    private fun bins() : List<ScreenObject> = screenObjects.filter { !it.dragFrom && it.dragTo }
+    private fun bins() : List<ScreenObject> =
+        screenObjects.filter { it.visibility && !it.dragFrom && it.dragTo && it is Bin}
+
+    fun getScaleVariables() : List<ScaleVariable> =
+        listOf(Ball(context, 1), Cube(context, 1), Cylinder(context, 1))
+            .filter { screenVariableToStringVar.keys.contains(it::class.toString()) }
 }

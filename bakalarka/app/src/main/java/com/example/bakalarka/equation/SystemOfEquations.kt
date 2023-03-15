@@ -27,7 +27,11 @@ class SystemOfEquations(var equations : List<Equation>) {
     fun findBracket() : Bracket? = equations.flatMap { it.findAllBrackets() }
         .toList().firstOrNull()
 
-    fun solve() : Boolean{
+    fun setAllBracketInsides(bracketInside : Addition){
+        equations.forEach { it.setAllBracketInsides(bracketInside) }
+    }
+
+    fun solve(){
         Log.i("rovnica", "solve system rovnic: " + this.toString())
         val variables = findVariables()
         solutions = mutableMapOf()
@@ -42,10 +46,15 @@ class SystemOfEquations(var equations : List<Equation>) {
 
         if (solutions.size == 0) {
             solutions = mutableMapOf()
-            return false
+            return
         }
         setEquationSolutions()
-        return true
+    }
+
+    @JvmName("setSolutions1")
+    fun setSolutions(s : MutableMap<String, Int>){
+        solutions = s
+        setEquationSolutions()
     }
 
     private fun setEquationSolutions() {
@@ -71,8 +80,9 @@ class SystemOfEquations(var equations : List<Equation>) {
                 setEquationSolutions()
                 if ((0 until equations.size).all { ix ->
                         equations[ix].leftEqualsRight()
-                    })
+                    }){
                     return
+                }
             }
         }
         solutions = mutableMapOf()
@@ -88,14 +98,20 @@ class SystemOfEquations(var equations : List<Equation>) {
                     setEquationSolutions()
                     if ((0 until equations.size).all { ix ->
                             equations[ix].leftEqualsRight()
-                        })
+                        }){
                         return
+                    }
                 }
             }
         }
         solutions = mutableMapOf()
     }
 
+    fun copy() : SystemOfEquations{
+        val copy = SystemOfEquations(equations.map { it.copy() })
+        copy.solutions = solutions
+        return copy
+    }
 
     override fun toString() : String = equations.map { it.toString() }
         .joinToString(separator = ", ")

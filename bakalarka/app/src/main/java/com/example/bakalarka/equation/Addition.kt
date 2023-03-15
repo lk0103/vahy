@@ -1,6 +1,5 @@
 package com.example.vahy.equation
 
-import android.util.Log
 import com.example.bakalarka.equation.Bracket
 
 class Addition(var addends : MutableList<Polynom>) : Polynom(){
@@ -25,14 +24,42 @@ class Addition(var addends : MutableList<Polynom>) : Polynom(){
     override fun evaluate(variables : Map<String, Int>): Int =
         addends.map { it.evaluate(variables) }.sum()
 
-    override fun findAllVariables() : Set<String> =
-        addends.flatMap { it.findAllVariables() }.toSet()
+    override fun countNumVariableTypes(): MutableMap<String, Int> {
+        val numVarTypes = mutableMapOf<String, Int>()
+        addends.forEach { pol ->
+            pol.countNumVariableTypes().forEach{
+                val newValue = (numVarTypes.getOrDefault(it.key, 0) + it.value)
+                numVarTypes[it.key] = newValue
+            }
+        }
+        return numVarTypes
+    }
 
-    override fun containsBracket(): Boolean =
-        addends.any { it.containsBracket() }
+    override fun countNumConsValues(): MutableMap<Int, Int> {
+        val numConsValues = mutableMapOf<Int, Int>()
+        addends.forEach { pol ->
+            pol.countNumConsValues().forEach{
+                val newValue = (numConsValues.getOrDefault(it.key, 0) + it.value)
+                numConsValues[it.key] = newValue
+            }
+        }
+        return numConsValues
+    }
 
-    override fun findAllBrackets(): Set<Bracket> =
-        addends.flatMap { it.findAllBrackets() }.toSet()
+    override fun countNumBrackets(): MutableMap<Bracket, Int> {
+        val numBrackets = mutableMapOf<Bracket, Int>()
+        addends.forEach { pol ->
+            pol.countNumBrackets().forEach{
+                val newValue = (numBrackets.getOrDefault(it.key, 0) + it.value)
+                numBrackets[it.key] = newValue
+            }
+        }
+        return numBrackets
+    }
+
+    override fun setAllBracketInsides(bracketInside: Addition) {
+        addends.forEach { it.setAllBracketInsides(bracketInside) }
+    }
 
     override fun toString(): String =
         addends.map { it.toString() }.joinToString(separator = " + ")
@@ -140,4 +167,8 @@ class Addition(var addends : MutableList<Polynom>) : Polynom(){
     }
 
     fun size() : Int = addends.size
+
+    override fun copy(): Polynom {
+        return Addition(addends.map { it.copy() }.toMutableList())
+    }
 }

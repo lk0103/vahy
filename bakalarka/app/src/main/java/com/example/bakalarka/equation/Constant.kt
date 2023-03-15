@@ -1,6 +1,5 @@
 package com.example.vahy.equation
 
-import com.example.bakalarka.equation.Bracket
 
 class Constant(protected var constant : Int) : Polynom() {
 
@@ -9,6 +8,9 @@ class Constant(protected var constant : Int) : Polynom() {
         else this
 
     override fun evaluate(variables : Map<String, Int>): Int = constant
+
+    override fun countNumConsValues(): MutableMap<Int, Int> =
+        mutableMapOf(constant to 1)
 
     override fun toString(): String = constant.toString()
 
@@ -40,4 +42,8 @@ class Constant(protected var constant : Int) : Polynom() {
         if (constant == value) this else null
 
     fun getValue() : Int = constant
+
+    override fun copy(): Polynom {
+        return Constant(constant)
+    }
 }

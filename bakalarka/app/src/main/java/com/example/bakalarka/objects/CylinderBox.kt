@@ -4,8 +4,8 @@ class CylinderBox: EquationObjectBox() {
 
     init {
         maxNumberOfObj = 8
-        cols = 2.2
-        rows = 4.0
+        cols = 2.0
+        rows = 3.8
     }
 
     override fun calculatePositions() {
@@ -23,10 +23,10 @@ class CylinderBox: EquationObjectBox() {
             hMultiple += 2
             yShift = yDeltaFirst + row * yDelta
             (0..1).forEach { col ->
-                var wMultiple = 7
+                var wMultiple = 13
                 val wDivisor = 8
                 if (col >= 1){
-                    wMultiple = 13
+                    wMultiple = 7
                 }
 
                 positions.add(listOf(

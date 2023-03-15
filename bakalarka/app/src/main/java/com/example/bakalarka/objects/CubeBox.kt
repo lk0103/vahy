@@ -23,10 +23,10 @@ class CubeBox: EquationObjectBox() {
             hMultiple += 2
             yShift = yDeltaFirst + row * yDelta
             (0..1).forEach { col ->
-                var wMultiple = 3
+                var wMultiple = 7
                 val wDivisor = 4
                 if (col >= 1){
-                    wMultiple = 7
+                    wMultiple = 3
                 }
 
                 positions.add(listOf(

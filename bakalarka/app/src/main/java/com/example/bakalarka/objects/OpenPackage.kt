@@ -9,7 +9,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.example.bakalarka.R
 import com.example.bakalarka.equation.Bracket
-import com.example.bakalarka.equation.Equation
 import com.example.bakalarka.equation.SystemOfEquations
 import com.example.bakalarka.objects.EquationObject
 import com.example.bakalarka.objects.ContainerForEquationBoxes
@@ -29,6 +28,28 @@ class OpenPackage(context : Context, dragFrom : Boolean = true, dragTo : Boolean
         maxNumberOfBoxes = 2
     }
 
+    override fun reloadImage(w : Int, h : Int){
+        if (image == null)
+            return
+        image = ContextCompat.getDrawable(context, R.drawable.open_package1)!!.toBitmap()
+        image = Bitmap.createScaledBitmap(image!!, w, h, true)
+    }
+
+    fun changeSizeInScaleView(widthView : Int, heightView : Int, padding : Int,
+                              objsToChooseFromVis: Boolean){
+        val w = widthView * 1 / 4 - padding * 2
+        if (objsToChooseFromVis)
+            sizeChanged(
+                w, heightView - 2 * padding,
+                widthView * 7 / 8  + padding,heightView - w / 2
+            )
+        else
+            sizeChanged(
+                w, heightView / 2 - padding * 2,
+                widthView * 7 / 8 + padding, heightView / 4 + padding
+            )
+    }
+
     override fun sizeChanged(w: Int, h: Int, xStart: Int, yStart: Int) {
         if (image == null)
             return
@@ -39,6 +60,10 @@ class OpenPackage(context : Context, dragFrom : Boolean = true, dragTo : Boolean
         while (height > h){
             width -= 5
             height -= 5
+        }
+        if (image!!.width < width || image!!.height < height){
+            reloadImage(width, height)
+            return
         }
         image = Bitmap.createScaledBitmap(image!!, width, height, true)
         changeSizeInsideObj()
@@ -59,7 +84,7 @@ class OpenPackage(context : Context, dragFrom : Boolean = true, dragTo : Boolean
     }
 
     override fun draw(canvas: Canvas, paint: Paint){
-        if (image == null)
+        if (image == null || !visibility)
             return
         canvas.drawBitmap(
             image!!,
@@ -76,14 +101,14 @@ class OpenPackage(context : Context, dragFrom : Boolean = true, dragTo : Boolean
         }
     }
 
-    override fun addEquationObjIntoHolder(obj : EquationObject, sysEq : SystemOfEquations?) {
+    override fun putEquationObjIntoHolder(obj : EquationObject, sysEq : SystemOfEquations?) {
         if (obj is com.example.bakalarka.objects.Package)
             return
-        super.addEquationObjIntoHolder(obj, sysEq)
+        super.putEquationObjIntoHolder(obj, sysEq)
     }
 
     override fun isIn(x1 : Int, y1 : Int) : Boolean =
-        (x1 >= x - width / 2 && x1 <= x + width / 2 &&
+        visibility && (x1 >= x - width / 2 && x1 <= x + width / 2 &&
                 y1 >= y - height / 2 && y1 <= y + height / 2)
 
     fun getInsideObjects() : List<EquationObject> =

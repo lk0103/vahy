@@ -3,17 +3,13 @@ package com.example.bakalarka.ui.main
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
-import android.widget.NumberPicker
 import androidx.core.content.ContextCompat
 import com.example.bakalarka.R
-import com.example.bakalarka.objects.Ball
-import com.example.bakalarka.objects.Cube
-import com.example.bakalarka.objects.Cylinder
 import com.example.bakalarka.objects.ScaleVariable
 import com.example.bakalarka.objects.menu.*
 import com.example.vahy.objects.ScreenObject
@@ -25,9 +21,11 @@ class TaskSolveEquationView(context: Context, attrs: AttributeSet)
     var heightView = 1
     private val paint = Paint()
 
+    var checkSolution = false
+
     init {
         screenObjects.add(DoneIcon(context))
-        screenObjects.add(TaskSolveEquation(context, mutableMapOf()))
+        screenObjects.add(TaskSolveEquation(context, listOf()))
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -39,18 +37,18 @@ class TaskSolveEquationView(context: Context, attrs: AttributeSet)
 
     private fun changeSizeScreenObjects() {
         screenObjects.forEach { obj ->
-            val widthIcon = widthView / 10
+            val widthIcon = widthView / 8
             val widthPadding = widthView / 100
             val heightPadding = heightView / 10
             if (obj is DoneIcon) {
                 obj.sizeChanged(
                     widthIcon - widthPadding * 2, heightView - 2 * heightPadding,
                     widthView - widthIcon + widthPadding,
-                    heightPadding + heightView / 2 - widthIcon / 2
+                    heightView / 2 - widthIcon / 2
                 )
             } else if (obj is TaskSolveEquation) {
                 obj.sizeChanged(
-                    widthIcon * 9 - widthPadding * 2, heightView - 2 * heightPadding,
+                    widthView - widthIcon - widthPadding * 2, heightView - 2 * heightPadding,
                     widthPadding, heightPadding
                 )
             } else
@@ -82,13 +80,21 @@ class TaskSolveEquationView(context: Context, attrs: AttributeSet)
                 }
                 invalidate()
             }
+
+            if (screenObjects.any { it is DoneIcon && it.isIn(event.x.toInt(), event.y.toInt()) })
+                checkSolution = true
         }
         return true
     }
 
 
-    fun setMapSolutions(solutions : Map<ScaleVariable, Int>){
+    fun setMapSolutions(variables : List<ScaleVariable>){
         screenObjects.filter { it is TaskSolveEquation }
-            .forEach { (it as TaskSolveEquation).setSolutions(solutions)}
+            .forEach { (it as TaskSolveEquation).setVariables(variables)}
+        invalidate()
     }
+
+    fun getUserSolutions() : Map<String, Int> =
+        (screenObjects.filter { it is TaskSolveEquation }
+            .first() as TaskSolveEquation).getUserSolutions()
 }

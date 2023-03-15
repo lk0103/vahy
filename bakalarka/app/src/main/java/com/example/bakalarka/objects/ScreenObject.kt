@@ -12,6 +12,7 @@ import com.example.bakalarka.objects.menu.DownIcon
 import com.example.bakalarka.objects.menu.UpIcon
 
 open class ScreenObject(var dragFrom : Boolean, var dragTo : Boolean){
+    var visibility = true
     var x : Int  = 0
     var y = 0
     var z = 0
@@ -21,10 +22,8 @@ open class ScreenObject(var dragFrom : Boolean, var dragTo : Boolean){
 
 
     open fun draw(canvas: Canvas, paint: Paint){
-        if (image == null)
+        if (image == null || !visibility)
             return
-        if (this is DownIcon || this is UpIcon)
-            Log.i("icons", "kreslenie: " + this::class.toString())
         canvas.drawBitmap(
             image!!,
             null,
@@ -46,9 +45,6 @@ open class ScreenObject(var dragFrom : Boolean, var dragTo : Boolean){
             width -= 5
             height -= 5
         }
-        if (this is DownIcon || this is UpIcon)
-            Log.i("icons", "sizeChange: x: " + x + " y: " + y + " height: " + height +
-                        " width: " + width + " class: " + this::class)
         if (image!!.width < width || image!!.height < height){
             reloadImage(width, height)
             return
@@ -76,6 +72,8 @@ open class ScreenObject(var dragFrom : Boolean, var dragTo : Boolean){
 
 
     fun isIn(obj : ScreenObject) : Boolean {
+        if (!visibility)
+            return false
         // if rectangle has area 0, no overlap
         if (x == x + width || y == y + height || obj.x + obj.width == obj.x || obj.y == obj.y + obj.height) {
             return false
@@ -94,20 +92,27 @@ open class ScreenObject(var dragFrom : Boolean, var dragTo : Boolean){
     }
 
     open fun isIn(x1 : Int, y1 : Int) : Boolean =
-                (x1 >= x && x1 <= x + width &&
+               visibility && (x1 >= x && x1 <= x + width &&
                 y1 >= y && y1 <= y + height)
 
 
-    open fun onDoubleTap(event: MotionEvent) : ScaleValue?{
-        val clickedObject = returnClickedObject(event.x.toInt(), event.y.toInt())
-        if (!(clickedObject is ScaleValue))
+    open fun onDoubleTap(event: MotionEvent) : EquationObject?{
+        if (!visibility)
             return null
-        (clickedObject as ScaleValue).increment()
-        Log.i("rovnica", "screenObj onDoubleTap: value: " + clickedObject.evaluate())
-        return clickedObject
+        val clickedObject = returnClickedObject(event.x.toInt(), event.y.toInt())
+        if (clickedObject is ScaleValue) {
+            clickedObject.increment()
+            return clickedObject
+        }
+        if (clickedObject is com.example.bakalarka.objects.Package){
+            return clickedObject
+        }
+        return null
     }
 
     open fun onLongPress(event: MotionEvent) : ScaleValue?{
+        if (!visibility)
+            return null
         val clickedObject = returnClickedObject(event.x.toInt(), event.y.toInt())
         if (!(clickedObject is ScaleValue))
             return null
