@@ -77,4 +77,5 @@ open class EquationObject(dragFrom : Boolean = false, dragTo : Boolean = false)
     override fun isIn(x1 : Int, y1: Int) : Boolean =
         (x1 >= x - widthBordingBox / 2 && x1 <= x + widthBordingBox / 2 &&
                 y1 >= y - heightBordingBox / 2 && y1 <= y + heightBordingBox / 2)
+
 }

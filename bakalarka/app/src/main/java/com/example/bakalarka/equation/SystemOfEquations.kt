@@ -78,6 +78,10 @@ class SystemOfEquations(var equations : List<Equation>) {
             for (j in 1..30) {
                 solutions[variable[1]] = j
                 setEquationSolutions()
+                Log.i("rovnica", "sol: " + solutions + " all " +
+                        ((0 until equations.size).all { ix ->
+                            equations[ix].leftEqualsRight()
+                        }))
                 if ((0 until equations.size).all { ix ->
                         equations[ix].leftEqualsRight()
                     }){

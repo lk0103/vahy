@@ -11,6 +11,7 @@ import com.example.bakalarka.objects.menu.RestartIcon
 import com.example.bakalarka.tasks.Level
 import com.example.bakalarka.tasks.Level1
 import com.example.bakalarka.tasks.Level2
+import com.example.bakalarka.tasks.Level3
 
 class MainMenuViewModel : ViewModel() {
     lateinit var mainActivity: MainActivity
@@ -91,6 +92,7 @@ class MainMenuViewModel : ViewModel() {
         when(level){
             1 -> return Level1()
             2 -> return Level2()
+            3 -> return Level3()
         }
         return Level1()
     }

@@ -2,21 +2,21 @@ package com.example.bakalarka.objects.menu
 
 import android.content.Context
 import android.graphics.*
-import android.util.Log
-import com.example.bakalarka.objects.ScaleVariable
+import android.view.MotionEvent
+import com.example.bakalarka.objects.*
 import com.example.vahy.objects.ScreenObject
 
 class TaskSolveEquation(private val context: Context, private var variables : List<ScaleVariable>)
     : ScreenObject(false, false) {
     private var colums = 1
-    private var numberPickers = mutableMapOf<ScaleVariable, CustomNumberPicker>()
-
+    private var numberPickers = mutableMapOf<ScaleVariable, Weight>()
+    private var draggedToOriginal : MutableMap<Weight, Weight> = mutableMapOf()
 
     init {
         width = 100
         height = 10
         colums = variables.size
-        variables.forEach { numberPickers[it] = CustomNumberPicker(context) }
+        variables.forEach { numberPickers[it] = Weight(context, 1)}
     }
 
     override fun sizeChanged(w: Int, h: Int, xStart: Int, yStart: Int) {
@@ -31,16 +31,15 @@ class TaskSolveEquation(private val context: Context, private var variables : Li
         var i = 0
         variables.forEach { variable ->
             val sizeColumn = width / colums
-            val xMargin = 0
-            val w = sizeColumn / 6
-            val h = height * 3 / 4
-            val startX = x + sizeColumn * i + sizeColumn / 2 - width / 10
+            val w = sizeColumn / 3
+            val h = height * 4 / 5
+            var startX = x + sizeColumn * i + sizeColumn / 2 - width / 10
             val startY = y + height / 2
             variable.sizeChanged(w, h, startX, startY)
 
-            val numberPicker = numberPickers[variable]
-            numberPicker?.sizeChanged(w * 3 / 2 - xMargin * 2, height,
-                startX + width / 6 + xMargin, y )
+            startX += 2 * width / 10
+            val weight = numberPickers[variable]
+            weight?.sizeChanged(w * 2, height * 40 / 39, startX, startY)
             i++
         }
     }
@@ -63,21 +62,45 @@ class TaskSolveEquation(private val context: Context, private var variables : Li
 
             canvas.drawText("=", xText, yText, paint)
         }
+        draggedToOriginal.keys.forEach { it.draw(canvas, paint) }
     }
 
     fun setVariables(v : List<ScaleVariable>){
         variables = v
         colums = variables.size
         numberPickers = mutableMapOf()
-        variables.forEach { numberPickers[it] = CustomNumberPicker(context) }
+        variables.forEach { numberPickers[it] = Weight(context, 1) }
         changeSizeObjects()
     }
 
-    fun touch(x1 : Int, y1: Int){
-        numberPickers.values.filter { it.isIn(x1, y1)}
-            .forEach { it.touch(x1, y1) }
+    fun onTouchDown(x1 : Int, y1: Int){
+        draggedToOriginal = numberPickers.values.filter { it.isIn(x1, y1)}
+            .map { Pair(it.makeCopy() as Weight, it) }.toMap().toMutableMap()
+    }
+
+    fun onTouchMove(event: MotionEvent) {
+        draggedToOriginal.keys.forEach { it.move(event.x.toInt(), event.y.toInt()) }
+
+    }
+
+    fun onTouchUp() {
+        plusMinus1ToDragged()
+        draggedToOriginal = mutableMapOf()
+    }
+
+    private fun plusMinus1ToDragged(){
+        val tolerance = 0
+        draggedToOriginal.forEach { (dragged, original) ->
+            if (dragged.y < original.y - tolerance) {
+                if (original.evaluate() < 30)
+                    original.increment()
+            } else if (dragged.y > original.y + tolerance) {
+                if (original.evaluate() > 0)
+                    original.decrement()
+            }
+        }
     }
 
     fun getUserSolutions() : Map<String, Int> =
-        numberPickers.mapValues { it.value.value }.mapKeys { it.key::class.toString() }
+        numberPickers.mapValues { it.value.evaluate() }.mapKeys { it.key::class.toString() }
 }

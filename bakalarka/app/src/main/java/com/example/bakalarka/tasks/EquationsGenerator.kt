@@ -35,8 +35,6 @@ class EquationsGenerator : Generator(){
     fun generateLinearEquationWithNaturalSolution(): SystemOfEquations {
         val (left, right) = createLeftRightSidesEq()
         if (Equation(left, right).hasSameNumOfVarOnBothSides()) {
-            Log.i("generate", "left: " + left+ " right: " + right+" same sides: " +  (Equation(left, right).hasSameNumOfVarOnBothSides())
-                    + " leftNumVArs: " + left.countNumVariableTypes() + " rightNumVArs: " + right.countNumVariableTypes())
             return SystemOfEquations(mutableListOf())
         }
 

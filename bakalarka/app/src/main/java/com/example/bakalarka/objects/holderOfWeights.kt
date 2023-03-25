@@ -36,6 +36,7 @@ class HolderOfWeights(context: Context,
     private val heightWithoutBowlOriginalImage = 492
     private val heightWithoutBowlOriginalMenuImage = 370
 
+
     init {
         z = 2
         defaultSizeValues()
@@ -74,7 +75,9 @@ class HolderOfWeights(context: Context,
     }
 
     fun changeSizeInScaleView(widthView : Int, heightView : Int, padding : Int,
-                              scaleWidthProportion : Pair<Int, Int>){
+                              scaleWidthProportion : Pair<Int, Int>,
+                              biggerNumEqBoxes : Int){
+        biggerNumEquationBoxes = biggerNumEqBoxes
         sizeChanged(
             widthView * scaleWidthProportion.first / scaleWidthProportion.second - padding * 2,
             heightView - padding * 2,
@@ -117,9 +120,11 @@ class HolderOfWeights(context: Context,
     }
 
     override fun changeSizeInsideObj() {
+        if (biggerNumEquationBoxes < 0)
+            biggerNumEquationBoxes = equationObjectBoxes.size
         (0 until equationObjectBoxes.size).forEach { i ->
             equationObjectBoxes[i].sizeChanged(
-                width / equationObjectBoxes.size, calculateHeightBox(),
+                width / biggerNumEquationBoxes, calculateHeightBox(),
                 x + i * width / equationObjectBoxes.size,
                 y + heightWithoutBowl / 3
             )

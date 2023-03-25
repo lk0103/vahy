@@ -12,12 +12,21 @@ import com.example.bakalarka.R
 import com.example.bakalarka.equation.SystemOfEquations
 import com.example.bakalarka.tasks.*
 import com.example.vahy.ScalesView
+import kotlinx.android.synthetic.main.fragment_build_scale_from_eq.*
 
 
 class SolveEquationViewModel : ViewModel() {
 
     lateinit var mainActivity: MainActivity
     var switchBetweenTasks = SwitchingBetweenTasks()
+    var controlMenuTasks = ControlMenuTasks()
+
+    @JvmName("setMainActivity1")
+    fun setMainActivity(mainactivity : MainActivity){
+        mainActivity = mainactivity
+        switchBetweenTasks.mainActivity = mainactivity
+        controlMenuTasks.mainActivity = mainactivity
+    }
 
 
     fun generateNewEq(clickedView: View, event: MotionEvent, scalesView : ScalesView) : Boolean{
@@ -43,42 +52,23 @@ class SolveEquationViewModel : ViewModel() {
         Log.i("levels", " generate  level: " + level + " taskInLevel" + taskInLevel)
 
         var sysEq = SystemOfEquations(mutableListOf())
-        while (sysEq.solutions.size <= 0) {
-            sysEq = generator.generateLinearEquationWithNaturalSolution()
+        while (sysEq.solutions.size <= 0 || sysEq.equations.any { ! it.leftEqualsRight() }) {
+            if (generator is EquationsGenerator)
+                sysEq = generator.generateLinearEquationWithNaturalSolution()
+            else if (generator is System2EqGenerator)
+                sysEq = generator.generateSystem2DiophantineEquations()
             Log.i("generate", sysEq.toString())
             Log.i("generate", sysEq.solutions.toString())
         }
 
+        if (sysEq.equations.size == 2)
+            scalesView.setSystem2EqTask(true)
+        scalesView.hasPackage = sysEq.containsBracket()
         scalesView.setEquation(sysEq, 0)
         scalesView.setTouchabilityOfOpenPackage(false)
-
         val variables = scalesView.getScaleVariables()
         Log.i("right", "variables: " + (scalesView.getScaleVariables()))
         taskSolveEquationView.setMapSolutions(variables)
-    }
-
-    fun onTouch(clickedView: View, event: MotionEvent, scalesView: ScalesView) : Boolean{
-        clickedView.onTouchEvent(event)
-        if (clickedView is TaskMainMenuView && clickedView.replayTask){
-            restoreOriginalEquation(clickedView, scalesView)
-            return true
-        }
-
-        if (clickedView is TaskMainMenuView && clickedView.leaveTask){
-            leaveTask(clickedView, scalesView)
-            return true
-        }
-        return true
-    }
-
-    fun restoreOriginalEquation(clickedView: TaskMainMenuView, scalesView: ScalesView){
-        clickedView.replayTask = false
-        scalesView.restoreOriginalEquation()
-    }
-
-    fun leaveTask(clickedView: TaskMainMenuView, scalesView: ScalesView) {
-        clickedView.replayTask = false
-        switchToMainMenuFragment(clickedView, scalesView)
     }
 
 
@@ -88,10 +78,15 @@ class SolveEquationViewModel : ViewModel() {
             return false
         }
         clickedView.checkSolution = false
-        Toast.makeText(mainActivity, if (scalesView.getSolutions() == clickedView.getUserSolutions()) "right"
-                            else "wrong", Toast.LENGTH_SHORT).show()
+        val rightAnswer = scalesView.getSolutions() == clickedView.getUserSolutions()
+        scalesView.failSuccessShow(rightAnswer)
+        if (clickedView is TaskSolveEquationView)
+            clickedView.failSuccessShow()
+        return rightAnswer
+    }
 
-        return scalesView.getSolutions() == clickedView.getUserSolutions()
+    fun onTouch(clickedView: View, event: MotionEvent, scalesView: ScalesView) : Boolean{
+        return controlMenuTasks.onTouch(clickedView, event, scalesView)
     }
 
     private fun switchToChosenLevel(level: Int, continueOnTask: Int,
@@ -99,15 +94,15 @@ class SolveEquationViewModel : ViewModel() {
         val taskType1 = switchBetweenTasks.getLevel(level).tasks[continueOnTask].first
 
         if (taskType1 == "build") {
-            switchToBuildEqFragment(view)
+            switchSolveToBuildEqFragment(view)
         }
 
         if (taskType1 == "solve") {
-            switchToSolveEqFragment(view)
+            switchSolveToSolveEqFragment(view)
         }
     }
 
-    private fun switchToBuildEqFragment(view: View) {
+    private fun switchSolveToBuildEqFragment(view: View) {
         val navController = Navigation.findNavController(view)
         if (navController.currentDestination?.id == R.id.solveEquationFragment) {
             val action = SolveEquationFragmentDirections
@@ -116,7 +111,7 @@ class SolveEquationViewModel : ViewModel() {
         }
     }
 
-    private fun switchToSolveEqFragment(view: View) {
+    private fun switchSolveToSolveEqFragment(view: View) {
         val navController = Navigation.findNavController(view)
         if (navController.currentDestination?.id == R.id.solveEquationFragment) {
             val action = SolveEquationFragmentDirections
@@ -125,12 +120,4 @@ class SolveEquationViewModel : ViewModel() {
         }
     }
 
-    private fun switchToMainMenuFragment(view : TaskMainMenuView, scalesView: ScalesView) {
-        val navController = Navigation.findNavController(view)
-        if (navController.currentDestination?.id == R.id.solveEquationFragment) {
-            val action = SolveEquationFragmentDirections
-                .actionSolveEquationFragmentToMainMenu()
-            Navigation.findNavController(scalesView).navigate(action)
-        }
-    }
 }

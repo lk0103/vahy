@@ -102,6 +102,7 @@ class ObjectsToChooseFrom (private var insideObject :
         canvas.drawRoundRect(RectF(x1, y1, x2, y2), 20F,20F, paint)
     }
 
+
     override fun returnDraggedObject(x1: Int, y1: Int): EquationObject? =
         insideObject.filter { it.isIn(x1, y1)}.firstOrNull()?.makeCopy()
 

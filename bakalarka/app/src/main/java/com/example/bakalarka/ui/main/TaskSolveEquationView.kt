@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.os.CountDownTimer
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
@@ -16,6 +17,7 @@ import com.example.vahy.objects.ScreenObject
 
 class TaskSolveEquationView(context: Context, attrs: AttributeSet)
     : View(context, attrs) {
+    var screenTouchDisabled = false
     private val screenObjects = mutableListOf<ScreenObject>()
     var widthView = 1
     var heightView = 1
@@ -37,7 +39,7 @@ class TaskSolveEquationView(context: Context, attrs: AttributeSet)
 
     private fun changeSizeScreenObjects() {
         screenObjects.forEach { obj ->
-            val widthIcon = widthView / 8
+            val widthIcon = widthView / 7
             val widthPadding = widthView / 100
             val heightPadding = heightView / 10
             if (obj is DoneIcon) {
@@ -68,25 +70,69 @@ class TaskSolveEquationView(context: Context, attrs: AttributeSet)
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
-        if (event == null) return true
+        if (event == null || screenTouchDisabled) return true
 
         val action = event.action
         if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) {
-            val touchedTaskSolve = screenObjects.filter { it is TaskSolveEquation &&
-                    it.isIn(event.x.toInt(), event.y.toInt()) }
-            if (touchedTaskSolve.size > 0){
-                touchedTaskSolve.forEach {
-                    (it as TaskSolveEquation).touch(event.x.toInt(), event.y.toInt())
-                }
-                invalidate()
-            }
-
-            if (screenObjects.any { it is DoneIcon && it.isIn(event.x.toInt(), event.y.toInt()) })
-                checkSolution = true
+            onTouchDown(event)
         }
+        else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_POINTER_UP
+            || action == MotionEvent.ACTION_CANCEL) {
+            onTouchUp(event)
+        } else if (action == MotionEvent.ACTION_MOVE) {
+            if (onTouchMove(event)) return true
+        }
+
         return true
     }
 
+    private fun touchedTaskSolveEq(event: MotionEvent) =
+        screenObjects.filter {
+            it is TaskSolveEquation &&
+                    it.isIn(event.x.toInt(), event.y.toInt())
+        }.map { it as TaskSolveEquation }
+
+    private fun onTouchMove(event: MotionEvent): Boolean {
+        val tolerance = 10
+        if (event.x <= tolerance || event.x >= widthView - tolerance ||
+            event.y <= tolerance || event.y >= heightView - tolerance) {
+            screenObjects.filter { it is TaskSolveEquation }
+                .forEach { (it as TaskSolveEquation).onTouchUp() }
+            invalidate()
+            return true
+        }
+        touchedTaskSolveEq(event).forEach { it.onTouchMove(event) }
+        invalidate()
+        return false
+    }
+
+    private fun onTouchUp(event : MotionEvent) {
+        touchedTaskSolveEq(event).forEach { it.onTouchUp() }
+        invalidate()
+    }
+
+    private fun onTouchDown(event: MotionEvent) {
+        touchedTaskSolveEq(event).forEach {
+            it.onTouchDown(event.x.toInt(), event.y.toInt())
+        }
+
+        if (screenObjects.any { it is DoneIcon && it.isIn(event.x.toInt(), event.y.toInt()) })
+            checkSolution = true
+        invalidate()
+    }
+
+    fun failSuccessShow(){
+        screenTouchDisabled = true
+        object : CountDownTimer(3000, 3000){
+            override fun onTick(p0: Long) {
+            }
+
+            override fun onFinish() {
+                screenTouchDisabled = false
+                invalidate()
+            }
+        }.start()
+    }
 
     fun setMapSolutions(variables : List<ScaleVariable>){
         screenObjects.filter { it is TaskSolveEquation }

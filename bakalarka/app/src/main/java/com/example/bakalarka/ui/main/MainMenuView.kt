@@ -14,6 +14,7 @@ import com.example.bakalarka.objects.*
 import com.example.bakalarka.objects.menu.Icon
 import com.example.bakalarka.objects.menu.LevelNumber
 import com.example.bakalarka.objects.menu.RestartIcon
+import com.example.vahy.equation.Addition
 import kotlin.random.Random
 
 class MainMenuView(context: Context, attrs: AttributeSet)
@@ -39,11 +40,6 @@ class MainMenuView(context: Context, attrs: AttributeSet)
     init {
         (0 until numOfLevels).forEach { i ->
             val holder = HolderOfWeights(context, true)
-
-            objForHolders[i].first.forEach { holder.putEquationObjIntoHolder(it) }
-            holder.addEquationObjectBox(BallonBox())
-            objForHolders[i].second.forEach { holder.putEquationObjIntoHolder(it) }
-
 
             holder.inMainMenu = true
             screenObjects.add(
@@ -109,6 +105,19 @@ class MainMenuView(context: Context, attrs: AttributeSet)
     fun changeLockedLevels(lastUnlockedLevel : Int){
         screenObjects.map { it.second }.forEach {
             it.setLocked(it.number > lastUnlockedLevel)
+        }
+
+        screenObjects.map { Pair(it.first, it.second.number - 1) }.forEach {(holder, i) ->
+            holder.setEquation(Addition(mutableListOf()), mutableMapOf())
+            if (i + 1 <= lastUnlockedLevel && !holder.isFull()) {
+                try {
+                    objForHolders[i].first.forEach { holder.putEquationObjIntoHolder(it) }
+                    holder.addEquationObjectBox(BallonBox())
+                    objForHolders[i].second.forEach { holder.putEquationObjIntoHolder(it) }
+                }catch (e : java.lang.Exception){
+
+                }
+            }
         }
         invalidate()
     }

@@ -1,13 +1,11 @@
 package com.example.bakalarka.objects.menu
 
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Rect
-import android.util.Log
+import android.graphics.*
+import android.text.TextPaint
 import com.example.bakalarka.equation.Equation
 import com.example.vahy.objects.ScreenObject
+
 
 class TaskBuildScaleEq(private val context: Context,
                        private var equations : List<Equation> = listOf())
@@ -28,9 +26,6 @@ class TaskBuildScaleEq(private val context: Context,
     }
 
     override fun draw(canvas: Canvas, paint: Paint){
-        paint.color = Color.BLACK
-        paint.textAlign = Paint.Align.CENTER
-
         var heightRow = height / blocks
         var widthRow = width
         if (vertical(paint) < horizontal(paint)){
@@ -44,8 +39,36 @@ class TaskBuildScaleEq(private val context: Context,
             val xText = if (widthRow == width) x + widthRow / 2F
                         else x + widthRow * i + widthRow / 2F
             calculateTextSize(heightRow, widthRow, i, paint)
+
+            textBackground(paint, i, canvas, xText, yText)
+
+            paint.color = Color.BLACK
+            paint.textAlign = Paint.Align.CENTER
             canvas.drawText(equations[i].toString(), xText, yText, paint)
         }
+    }
+
+    private fun textBackground(paint: Paint, i: Int, canvas: Canvas, xText: Float, yText: Float) {
+        val bounds = Rect()
+        paint.getTextBounds(equations[i].toString(), 0, equations[i].toString().length, bounds)
+        paint.color = Color.BLACK
+        paint.strokeWidth = 0F
+        roundedRectangle(
+            canvas, paint, xText - bounds.width() * 7 / 12 - 3,
+            yText - bounds.height() - 3 - 10,
+            xText + bounds.width() * 7 / 12 + 3, yText + bounds.height() / 2 + 3
+        )
+        paint.color = Color.WHITE
+        paint.strokeWidth = 0F
+        roundedRectangle(
+            canvas, paint, xText - bounds.width() * 7 / 12, yText - bounds.height() - 10,
+            xText + bounds.width() * 7 / 12, yText + bounds.height() / 2
+        )
+    }
+
+    private fun roundedRectangle(canvas: Canvas, paint: Paint, x1 : Float,
+                                 y1 : Float, x2 : Float, y2 : Float) {
+        canvas.drawRoundRect(RectF(x1, y1, x2, y2), 40F,40F, paint)
     }
 
     private fun vertical(paint: Paint): Float {

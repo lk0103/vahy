@@ -50,6 +50,7 @@ class SwitchingBetweenTasks {
         when(level){
             1 -> return Level1()
             2 -> return Level2()
+            3 -> return Level3()
         }
         return Level1()
     }

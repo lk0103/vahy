@@ -5,11 +5,8 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import android.util.Log
-import android.view.MotionEvent
 import com.example.bakalarka.objects.EquationObject
 import com.example.bakalarka.objects.ScaleValue
-import com.example.bakalarka.objects.menu.DownIcon
-import com.example.bakalarka.objects.menu.UpIcon
 
 open class ScreenObject(var dragFrom : Boolean, var dragTo : Boolean){
     var visibility = true
@@ -71,35 +68,48 @@ open class ScreenObject(var dragFrom : Boolean, var dragTo : Boolean){
     }
 
 
-    fun isIn(obj : ScreenObject) : Boolean {
+    open fun isIn(obj : ScreenObject) : Boolean {
+        val x1 = if (this is EquationObject) x - width / 2 else x
+        val y1 = if (this is EquationObject) y - height / 2 else y
+        val objX1 = if (obj is EquationObject) obj.x - obj.width / 2 else obj.x
+        val objY1 = if (obj is EquationObject) obj.y - obj.height / 2 else obj.y
         if (!visibility)
             return false
         // if rectangle has area 0, no overlap
-        if (x == x + width || y == y + height || obj.x + obj.width == obj.x || obj.y == obj.y + obj.height) {
+        if (x1 == x1 + width || y1 == y1 + height || objX1 + obj.width == objX1 || objY1 == objY1 + obj.height) {
             return false
         }
 
         // If one rectangle is on left side of other
-        if (x > obj.x + obj.width || obj.x > x + width) {
+        if (x1 > objX1 + obj.width || objX1 > x1 + width) {
             return false
         }
 
         // If one rectangle is above other
-        if ( obj.y > y + height || y > obj.y + obj.height) {
+        if ( objY1 > y1 + height || y1 > objY1 + obj.height) {
             return false
         }
         return true
+    }
+
+    fun overlappingArea(obj : ScreenObject): Int {
+        val x1 = if (this is EquationObject) x - width / 2 else x
+        val y1 = if (this is EquationObject) y - height / 2 else y
+        val objX1 = if (obj is EquationObject) obj.x - obj.width / 2 else obj.x
+        val objY1 = if (obj is EquationObject) obj.y - obj.height / 2 else obj.y
+        val xOverlap = maxOf(0, minOf(x1 + width, objX1 + obj.width) - maxOf(x1, objX1))
+        val yOverlap = maxOf(0, minOf(y1 + height, objY1 + obj.height) - maxOf(y1, objY1))
+        return xOverlap * yOverlap
     }
 
     open fun isIn(x1 : Int, y1 : Int) : Boolean =
                visibility && (x1 >= x && x1 <= x + width &&
                 y1 >= y && y1 <= y + height)
 
-
-    open fun onDoubleTap(event: MotionEvent) : EquationObject?{
+    open fun incrementValue(x1 : Int, y1 : Int) : EquationObject?{
         if (!visibility)
             return null
-        val clickedObject = returnClickedObject(event.x.toInt(), event.y.toInt())
+        val clickedObject = returnClickedObject(x1, y1)
         if (clickedObject is ScaleValue) {
             clickedObject.increment()
             return clickedObject
@@ -110,10 +120,10 @@ open class ScreenObject(var dragFrom : Boolean, var dragTo : Boolean){
         return null
     }
 
-    open fun onLongPress(event: MotionEvent) : ScaleValue?{
+    open fun decrementValue(x1 : Int, y1 : Int) : ScaleValue?{
         if (!visibility)
             return null
-        val clickedObject = returnClickedObject(event.x.toInt(), event.y.toInt())
+        val clickedObject = returnClickedObject(x1, y1)
         if (!(clickedObject is ScaleValue))
             return null
         (clickedObject as ScaleValue).decrement()

@@ -13,11 +13,11 @@ class System2EqGenerator : Generator(){
     var rangeNumVarLeft2 : List<Pair<Int, Int>> = listOf(Pair(0, 0), Pair(0, 0))
     var rangeNumVarRight2 : List<Pair<Int, Int>> = listOf(Pair(0, 0), Pair(0, 0))
 
-    var rangeNumConsLeft : List<Pair<Int, Int>> = listOf(Pair(1, 1), Pair(1, 1))
-    var rangeNumConsRight : List<Pair<Int, Int>> = listOf(Pair(1, 1), Pair(1, 1))
+    var rangeNumConsLeft : MutableList<Pair<Int, Int>> = mutableListOf(Pair(1, 1), Pair(1, 1))
+    var rangeNumConsRight : MutableList<Pair<Int, Int>> = mutableListOf(Pair(1, 1), Pair(1, 1))
 
-    var enableConsLeft = listOf(false, false)
-    var enableConsRight = listOf(false, false)
+    var enableConsLeft : MutableList<Boolean> = mutableListOf(false, false)
+    var enableConsRight : MutableList<Boolean> = mutableListOf(false, false)
 
     var rangeVarSolutions : List<Pair<Int, Int>> = listOf(Pair(1, 15), Pair(1, 15), Pair(1, 15))
 
@@ -30,23 +30,16 @@ class System2EqGenerator : Generator(){
             return SystemOfEquations(mutableListOf())
 
         val (left, right) = createLeftRightSidesOfEqs()
-//        if ((0 until left.size).any { i ->
-//                Equation(left[i], right[i]).hasSameNumOfVarOnBothSides()
-//            }) {
-//            Log.i("generate", "left: " + left+ " right: " + right+" same sides: " +
-//                    ((0 until left.size).any { i ->
-//                        Equation(left[i], right[i]).hasSameNumOfVarOnBothSides()
-//                    }))
-//            return SystemOfEquations(mutableListOf())
-//        }
 
         var eq: MutableList<Equation?> = generateWithRandomSolutions(left, right)
 
         if (eq.any { it == null}) return SystemOfEquations(mutableListOf())
 
+        Log.i("generate", "range var solutions: " + rangeVarSolutions)
         val sys2eq = SystemOfEquations(eq.map { it!! }.toMutableList())
         sys2eq.equations.forEach { it.simplify() }
         sys2eq.solve()
+        Log.i("generate", "real solutions: " + sys2eq.solutions)
         return sys2eq
     }
 
@@ -63,8 +56,10 @@ class System2EqGenerator : Generator(){
 
     private fun generateRandomSolutions(): Map<String, Int> {
         var solutions = randomSolutionMap()
+        Log.i("generate", "generated solutions: " + solutions)
         while (solutions["x"] == solutions["y"]) {
             solutions = randomSolutionMap()
+            Log.i("generate", "generated solutions: " + solutions)
         }
         return solutions
     }

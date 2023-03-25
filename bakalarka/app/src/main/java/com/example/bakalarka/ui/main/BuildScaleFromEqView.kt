@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.os.CountDownTimer
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -11,12 +12,14 @@ import androidx.core.content.ContextCompat
 import com.example.bakalarka.R
 import com.example.bakalarka.equation.Equation
 import com.example.bakalarka.objects.menu.DoneIcon
+import com.example.bakalarka.objects.menu.FailSuccessIcon
 import com.example.bakalarka.objects.menu.TaskBuildScaleEq
 import com.example.bakalarka.objects.menu.TaskSolveEquation
 import com.example.vahy.objects.ScreenObject
 
 class BuildScaleFromEqView(context: Context, attrs: AttributeSet)
     : View(context, attrs) {
+    var screenTouchDisabled = false
     private val screenObjects = mutableListOf<ScreenObject>()
     var widthView = 1
     var heightView = 1
@@ -38,7 +41,7 @@ class BuildScaleFromEqView(context: Context, attrs: AttributeSet)
 
     private fun changeSizeScreenObjects() {
         screenObjects.forEach { obj ->
-            val widthIcon = widthView / 10
+            val widthIcon = widthView / 7
             val widthPadding = widthView / 100
             val heightPadding = heightView / 10
             if (obj is DoneIcon) {
@@ -49,7 +52,7 @@ class BuildScaleFromEqView(context: Context, attrs: AttributeSet)
                 )
             } else if (obj is TaskBuildScaleEq) {
                 obj.sizeChanged(
-                    widthIcon * 9 - widthPadding * 2, heightView - 2 * heightPadding,
+                    widthView - widthIcon - widthPadding * 2, heightView - 2 * heightPadding,
                     widthPadding, heightPadding
                 )
             } else
@@ -69,7 +72,7 @@ class BuildScaleFromEqView(context: Context, attrs: AttributeSet)
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
-        if (event == null) return true
+        if (event == null || screenTouchDisabled) return true
 
         val action = event.action
         if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) {
@@ -77,6 +80,19 @@ class BuildScaleFromEqView(context: Context, attrs: AttributeSet)
                 checkSolution = true
         }
         return true
+    }
+
+    fun failSuccessShow(){
+        screenTouchDisabled = true
+        object : CountDownTimer(3000, 3000){
+            override fun onTick(p0: Long) {
+            }
+
+            override fun onFinish() {
+                screenTouchDisabled = false
+                invalidate()
+            }
+        }.start()
     }
 
 

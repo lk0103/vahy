@@ -47,8 +47,7 @@ class SolveEquationFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProvider(this).get(SolveEquationViewModel::class.java)
         binding.setVariable(myViewModel, viewModel)
-        viewModel.mainActivity = mainactivity
-        viewModel.switchBetweenTasks.mainActivity = mainactivity
+        viewModel.setMainActivity(mainactivity)
         viewModel.switchBetweenTasks.changeBackground(backgroundViewSolve)
 
         setCanvasParameters()
