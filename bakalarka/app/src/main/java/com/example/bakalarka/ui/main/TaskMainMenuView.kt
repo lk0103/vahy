@@ -29,6 +29,7 @@ class TaskMainMenuView(context: Context, attrs: AttributeSet)
     var previousEquation = false
 //    var restoreOriginalEquation = false
     var leaveTask = false
+    var isTouchable = true
 
     init {
         val progressBar = ProgressBar(context)
@@ -76,6 +77,7 @@ class TaskMainMenuView(context: Context, attrs: AttributeSet)
     @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas?) {
         if (canvas == null) return
+
         paint.color = ContextCompat.getColor(context, R.color.icons_color)
         paint.strokeWidth = 4F
         canvas.drawLine(0F, heightView.toFloat() - 10,
@@ -85,7 +87,7 @@ class TaskMainMenuView(context: Context, attrs: AttributeSet)
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
-        if (event == null) return true
+        if (event == null || !isTouchable) return true
 
         val action = event.action
         if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) {

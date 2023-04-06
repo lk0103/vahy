@@ -6,15 +6,13 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.os.CountDownTimer
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.content.ContextCompat
 import com.example.bakalarka.R
 import com.example.bakalarka.equation.Equation
-import com.example.bakalarka.objects.menu.DoneIcon
-import com.example.bakalarka.objects.menu.FailSuccessIcon
-import com.example.bakalarka.objects.menu.TaskBuildScaleEq
-import com.example.bakalarka.objects.menu.TaskSolveEquation
+import com.example.bakalarka.objects.menu.*
 import com.example.vahy.objects.ScreenObject
 
 class BuildScaleFromEqView(context: Context, attrs: AttributeSet)
@@ -26,6 +24,9 @@ class BuildScaleFromEqView(context: Context, attrs: AttributeSet)
     private val paint = Paint()
 
     var checkSolution = false
+    var indexTouchedEquation = -1
+
+    private var messageTimer : CountDownTimer? = null
 
     init {
         screenObjects.add(DoneIcon(context))
@@ -63,6 +64,7 @@ class BuildScaleFromEqView(context: Context, attrs: AttributeSet)
     @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas?) {
         if (canvas == null) return
+
         paint.color = ContextCompat.getColor(context, R.color.icons_color)
         paint.strokeWidth = 4F
         canvas.drawLine(0F, heightView.toFloat() - 10,
@@ -73,18 +75,26 @@ class BuildScaleFromEqView(context: Context, attrs: AttributeSet)
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         if (event == null || screenTouchDisabled) return true
+        val ex = event.x.toInt()
+        val ey = event.y.toInt()
 
         val action = event.action
         if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) {
-            if (screenObjects.any { it is DoneIcon && it.isIn(event.x.toInt(), event.y.toInt()) })
+            if (screenObjects.any { it is DoneIcon && it.isIn(ex, ey) })
                 checkSolution = true
+            else{
+                indexTouchedEquation = screenObjects.filter { it is TaskBuildScaleEq }
+                    .map { (it as TaskBuildScaleEq).getIndexTouchedEquation(ex, ey) }
+                    .firstOrNull() ?: -1
+            }
+            Log.i("string", " " + checkSolution + " " + indexTouchedEquation)
         }
         return true
     }
 
     fun failSuccessShow(){
         screenTouchDisabled = true
-        object : CountDownTimer(3000, 3000){
+        messageTimer = object : CountDownTimer(3000, 3000){
             override fun onTick(p0: Long) {
             }
 
@@ -93,6 +103,13 @@ class BuildScaleFromEqView(context: Context, attrs: AttributeSet)
                 invalidate()
             }
         }.start()
+    }
+
+    fun cancelMessage() {
+        messageTimer?.cancel()
+        screenTouchDisabled = false
+        invalidate()
+        messageTimer = null
     }
 
 
@@ -105,4 +122,9 @@ class BuildScaleFromEqView(context: Context, attrs: AttributeSet)
     fun getEquations() : List<Equation> =
         (screenObjects.filter { it is TaskBuildScaleEq }
             .first() as TaskBuildScaleEq).getEquations()
+
+    fun setIndexMarked(ix : Int){
+        if (screenObjects.any { it is TaskBuildScaleEq && it.setIndexMarked(ix) })
+            invalidate()
+    }
 }

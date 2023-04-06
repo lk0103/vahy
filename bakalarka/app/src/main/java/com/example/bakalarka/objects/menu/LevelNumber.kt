@@ -2,6 +2,7 @@ package com.example.bakalarka.objects.menu
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.example.bakalarka.R
@@ -11,12 +12,40 @@ import com.example.vahy.objects.ScreenObject
 class LevelNumber(private val context : Context, val number : Int)
     : ScreenObject(false, false) {
 
-    var locked = true
+    private var locked = true
     init {
         z = 2
         width = 230
         height = 295
         reloadImage(width, height)
+    }
+
+    fun changeSizeInScaleView(widthView : Int, heightView : Int){
+        //zmenit velkost cisla a aby sa z blednuteho zmenilo na farebne
+        val w = widthView * 1 / 5
+        val h = heightView
+//        sizeChanged(
+//            w, h,widthView / 4, heightView / 5
+//        )
+        sizeChanged(w, h, widthView / 4,  - heightView / 3)
+    }
+
+    override fun sizeChanged(w : Int, h : Int, xStart : Int, yStart : Int){
+        if (image == null)
+            return
+        x = xStart
+        y = yStart
+        height = w * height / width
+        width = w
+        while (height >= h){
+            width -= 5
+            height -= 5
+        }
+        if (image!!.width < width || image!!.height < height){
+            reloadImage(width, height)
+            return
+        }
+        image = Bitmap.createScaledBitmap(image!!, width, height, true)
     }
 
     override fun reloadImage(w : Int, h : Int){
@@ -41,4 +70,6 @@ class LevelNumber(private val context : Context, val number : Int)
         locked = isLocked
         reloadImage(width, height)
     }
+
+    fun isLocked() = locked
 }

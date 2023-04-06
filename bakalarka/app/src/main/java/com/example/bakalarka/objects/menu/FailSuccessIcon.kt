@@ -19,8 +19,8 @@ class FailSuccessIcon(context: Context, success : Boolean)
     }
 
     fun changeSizeInScaleView(widthView : Int, heightView : Int){
-        val w = widthView * 13 / 16
-        val h = heightView * 13 / 16
+        val w = widthView * 5 / 8
+        val h = heightView * 5 / 8
         sizeChanged(
             w, h,widthView / 3, heightView / 2
         )

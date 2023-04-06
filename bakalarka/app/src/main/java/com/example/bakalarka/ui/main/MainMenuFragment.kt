@@ -23,6 +23,7 @@ class MainMenuFragment : Fragment() {
     private lateinit var binding: FragmentMainMenuBinding
     private lateinit var viewModel: MainMenuViewModel
 
+
     override fun onStart() {
         super.onStart()
         viewModel.mainActivity = mainactivity

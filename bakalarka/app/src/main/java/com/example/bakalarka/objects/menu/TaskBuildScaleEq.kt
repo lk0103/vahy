@@ -3,6 +3,9 @@ package com.example.bakalarka.objects.menu
 import android.content.Context
 import android.graphics.*
 import android.text.TextPaint
+import android.util.Log
+import androidx.core.content.ContextCompat
+import com.example.bakalarka.R
 import com.example.bakalarka.equation.Equation
 import com.example.vahy.objects.ScreenObject
 
@@ -11,11 +14,16 @@ class TaskBuildScaleEq(private val context: Context,
                        private var equations : List<Equation> = listOf())
     : ScreenObject(false, false) {
     private var blocks = 1
+    private var indexMarked = -1
+    private var equationsBlocks : MutableList<EquationStringBlock> = mutableListOf()
 
     init {
         width = 10
         height = 10
         blocks = equations.size
+        equations.forEach { eq ->
+            equationsBlocks.add(EquationStringBlock(context, eq.toString()))
+        }
     }
 
     override fun sizeChanged(w: Int, h: Int, xStart: Int, yStart: Int) {
@@ -23,78 +31,58 @@ class TaskBuildScaleEq(private val context: Context,
         height = h
         x = xStart
         y = yStart
+
+        changeSizeObjects()
     }
 
-    override fun draw(canvas: Canvas, paint: Paint){
+    private fun changeSizeObjects() {
         var heightRow = height / blocks
         var widthRow = width
-        if (vertical(paint) < horizontal(paint)){
+        if (vertical() < horizontal()) {
             heightRow = height
             widthRow = width / blocks
         }
-
         (0 until blocks).forEach { i ->
             val yText = if (heightRow == height) y + heightRow / 2F + heightRow / 10F
-                        else y + heightRow * i + heightRow / 2F + heightRow / 10F
+            else y + heightRow * i + heightRow / 2F + heightRow / 10F
             val xText = if (widthRow == width) x + widthRow / 2F
-                        else x + widthRow * i + widthRow / 2F
-            calculateTextSize(heightRow, widthRow, i, paint)
-
-            textBackground(paint, i, canvas, xText, yText)
-
-            paint.color = Color.BLACK
-            paint.textAlign = Paint.Align.CENTER
-            canvas.drawText(equations[i].toString(), xText, yText, paint)
+            else x + widthRow * i + widthRow / 2F
+            equationsBlocks[i].textSize = calculateTextSize(heightRow, widthRow, i)
+            equationsBlocks[i].sizeChanged(widthRow, heightRow, xText.toInt(), yText.toInt())
         }
     }
 
-    private fun textBackground(paint: Paint, i: Int, canvas: Canvas, xText: Float, yText: Float) {
-        val bounds = Rect()
-        paint.getTextBounds(equations[i].toString(), 0, equations[i].toString().length, bounds)
-        paint.color = Color.BLACK
-        paint.strokeWidth = 0F
-        roundedRectangle(
-            canvas, paint, xText - bounds.width() * 7 / 12 - 3,
-            yText - bounds.height() - 3 - 10,
-            xText + bounds.width() * 7 / 12 + 3, yText + bounds.height() / 2 + 3
-        )
-        paint.color = Color.WHITE
-        paint.strokeWidth = 0F
-        roundedRectangle(
-            canvas, paint, xText - bounds.width() * 7 / 12, yText - bounds.height() - 10,
-            xText + bounds.width() * 7 / 12, yText + bounds.height() / 2
-        )
+    override fun draw(canvas: Canvas, paint: Paint){
+        equationsBlocks.forEach { it.draw(canvas, paint) }
     }
 
-    private fun roundedRectangle(canvas: Canvas, paint: Paint, x1 : Float,
-                                 y1 : Float, x2 : Float, y2 : Float) {
-        canvas.drawRoundRect(RectF(x1, y1, x2, y2), 40F,40F, paint)
-    }
 
-    private fun vertical(paint: Paint): Float {
+    private fun vertical(): Float {
         val heightRow = height / blocks
         val widthRow = width
-        return smallestTextSize(heightRow, widthRow, paint)
+        return smallestTextSize(heightRow, widthRow)
     }
 
-    private fun horizontal(paint: Paint): Float {
+    private fun horizontal(): Float {
         val heightRow = height
         val widthRow = width / blocks
-        return smallestTextSize(heightRow, widthRow, paint)
+        return smallestTextSize(heightRow, widthRow)
     }
 
-    private fun smallestTextSize(heightRow: Int, widthRow: Int, paint: Paint): Float {
+    private fun smallestTextSize(heightRow: Int, widthRow: Int): Float {
         var smallestTextSize = heightRow / 2F + 1
         (0 until blocks).forEach { i ->
-            calculateTextSize(heightRow, widthRow, i, paint)
-            if (smallestTextSize > paint.textSize) {
-                smallestTextSize = paint.textSize
+            val textSize = calculateTextSize(heightRow, widthRow, i)
+            if (smallestTextSize > textSize) {
+                smallestTextSize = textSize
             }
         }
         return smallestTextSize
     }
 
-    private fun calculateTextSize(heightRow: Int, widthRow: Int, i: Int, paint: Paint) {
+
+    private fun calculateTextSize(heightRow: Int, widthRow: Int, i: Int) : Float{
+        val paint = Paint()
         paint.textSize = heightRow / 2F
         val eqStr = equations[i].toString()
 
@@ -105,11 +93,41 @@ class TaskBuildScaleEq(private val context: Context,
             paint.textSize -= 2F
             paint.getTextBounds(eqStr, 0, eqStr.length, bounds)
         }
+        return paint.textSize
+    }
+
+    fun getIndexTouchedEquation(x1 : Int, y1 : Int) : Int{
+        (0 until blocks).forEach { i ->
+            if (equationsBlocks[i].isIn(x1, y1))
+                return i
+        }
+        return -1
+    }
+
+    fun setIndexMarked(ix : Int) : Boolean{
+        if (indexMarked != ix) {
+            indexMarked = ix
+            (0 until blocks).forEach { i ->
+                if (i != ix)
+                    equationsBlocks[i].isMarked = false
+                else
+                    equationsBlocks[i].isMarked = true
+            }
+            return true
+        }
+        return false
     }
 
     fun setEquations(eq : List<Equation>){
         equations = eq
         blocks = equations.size
+
+        equationsBlocks = mutableListOf()
+        equations.forEach { eq ->
+            equationsBlocks.add(EquationStringBlock(context, eq.toString()))
+        }
+        if (equations.size > 1)
+            setIndexMarked(0)
     }
 
     fun getEquations() : List<Equation> = equations

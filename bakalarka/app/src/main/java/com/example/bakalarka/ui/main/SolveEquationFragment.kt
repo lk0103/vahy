@@ -66,7 +66,6 @@ class SolveEquationFragment : Fragment() {
     }
 
 
-
     private fun setCanvasParameters() {
         val displayMetrics = DisplayMetrics()
         mainactivity.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics)
@@ -80,14 +79,14 @@ class SolveEquationFragment : Fragment() {
         val heightOfMenu = height / 7
         val widthOfMenu = width * 3 / 8 - 8 * 2
         param = TaskMainMenuView.layoutParams as ViewGroup.MarginLayoutParams
-        param.setMargins(8, 8, width - widthOfMenu, height - heightOfMenu)
+        param.setMargins(0, 8, width - widthOfMenu, height - heightOfMenu)
         TaskMainMenuView.layoutParams = param
         TaskMainMenuView.layoutParams.width = widthOfMenu
         TaskMainMenuView.layoutParams.height = heightOfMenu
 
-        val widthOfSolution = width - widthOfMenu - 8 * 2
+        val widthOfSolution = width - widthOfMenu
         param = TaskSolveEquationView.layoutParams as ViewGroup.MarginLayoutParams
-        param.setMargins(100, 8, 0, height - heightOfMenu)
+        param.setMargins(0, 8, 0, height - heightOfMenu)
         TaskSolveEquationView.layoutParams = param
         TaskSolveEquationView.layoutParams.width = widthOfSolution
         TaskSolveEquationView.layoutParams.height = heightOfMenu

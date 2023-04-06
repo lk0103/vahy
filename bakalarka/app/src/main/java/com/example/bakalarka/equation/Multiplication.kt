@@ -24,7 +24,7 @@ class Multiplication(private var polynom : Polynom,
     override fun countNumVariableTypes(): MutableMap<String, Int> {
         val numVarTypes = mutableMapOf<String, Int>()
         polynom.countNumVariableTypes().forEach{
-            val newValue = (numVarTypes.getOrDefault(it.key, 0)
+            val newValue = ((numVarTypes[it.key] ?: 0)
                     + it.value * multiple.evaluate(mapOf()))
             numVarTypes[it.key] = newValue
         }
@@ -34,7 +34,7 @@ class Multiplication(private var polynom : Polynom,
     override fun countNumConsValues(): MutableMap<Int, Int> {
         val numConsValues = mutableMapOf<Int, Int>()
         polynom.countNumConsValues().forEach{
-            val newValue = (numConsValues.getOrDefault(it.key, 0)
+            val newValue = ((numConsValues[it.key] ?: 0)
                     + it.value * multiple.evaluate(mapOf()))
             numConsValues[it.key] = newValue
         }
@@ -44,7 +44,7 @@ class Multiplication(private var polynom : Polynom,
     override fun countNumBrackets(): MutableMap<Bracket, Int> {
         val numBrackets = mutableMapOf<Bracket, Int>()
         polynom.countNumBrackets().forEach{
-            val newValue = (numBrackets.getOrDefault(it.key, 0)
+            val newValue = ((numBrackets[it.key] ?: 0)
                     + it.value * multiple.evaluate(mapOf()))
             numBrackets[it.key] = newValue
         }

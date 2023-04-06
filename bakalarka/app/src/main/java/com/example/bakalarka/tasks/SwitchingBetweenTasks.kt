@@ -1,10 +1,13 @@
 package com.example.bakalarka.tasks
 
 import android.content.Context
+import android.content.SharedPreferences
+import android.util.Log
 import com.example.bakalarka.MainActivity
 import com.example.bakalarka.R
 import com.example.bakalarka.ui.main.BackgroundView
 import com.example.bakalarka.ui.main.TaskMainMenuView
+import com.example.vahy.ScalesView
 import kotlinx.android.synthetic.main.fragment_solve_equation.*
 import kotlin.random.Random
 
@@ -32,13 +35,10 @@ class SwitchingBetweenTasks {
     }
 
     fun setTaskMainMenu(taskMainMenuView: TaskMainMenuView){
-        val prefsLevel =  mainActivity.applicationContext.getSharedPreferences(
-            "level", Context.MODE_PRIVATE)
+        val prefsLevel =  getSharedPreferences("level")
         val level = prefsLevel?.getInt("level", 1) ?: 1
 
-        val prefsContinueOnTaskInChosenLevel = mainActivity.applicationContext.getSharedPreferences(
-            "taskInLevel" + level, Context.MODE_PRIVATE
-        )
+        val prefsContinueOnTaskInChosenLevel = getSharedPreferences("taskInLevel" + level)
         val continueOnTask = prefsContinueOnTaskInChosenLevel.getInt("taskInLevel" + level, 0)
 
         val levelInfo = getLevel(level)
@@ -51,29 +51,25 @@ class SwitchingBetweenTasks {
             1 -> return Level1()
             2 -> return Level2()
             3 -> return Level3()
+            4 -> return Level4()
         }
         return Level1()
     }
 
     fun getLevelInt(): Int {
-        val prefsLevel = mainActivity.applicationContext.getSharedPreferences(
-            "level", Context.MODE_PRIVATE
-        )
+        val prefsLevel = getSharedPreferences("level")
         return prefsLevel.getInt("level", 1)
     }
 
 
     fun storeTargetLevelAndTask(): Pair<Int, Int> {
-        val prefsLevel =  mainActivity.applicationContext.getSharedPreferences(
-            "level", Context.MODE_PRIVATE)
+        val prefsLevel =  getSharedPreferences( "level")
         val level = prefsLevel.getInt("level", 1)
 
-        val prefsTaskInLevel =  mainActivity.applicationContext.getSharedPreferences(
-            "taskInLevel", Context.MODE_PRIVATE)
+        val prefsTaskInLevel =  getSharedPreferences("taskInLevel")
         var taskInLevel = prefsTaskInLevel.getInt("taskInLevel", 0)
-        val prefsContinueOnTaskInChosenLevel = mainActivity.applicationContext.getSharedPreferences(
-            "taskInLevel" + level, Context.MODE_PRIVATE
-        )
+
+        val prefsContinueOnTaskInChosenLevel = getSharedPreferences("taskInLevel" + level)
         var continueOnTask = prefsContinueOnTaskInChosenLevel.getInt("taskInLevel" + level, 0)
 
         taskInLevel++
@@ -86,17 +82,9 @@ class SwitchingBetweenTasks {
         }
         taskInLevel = generateNewTaskAfterCompletionOfLevel(level, continueOnTask)
 
-        var editor = prefsTaskInLevel.edit()
-        editor.putInt("taskInLevel", taskInLevel)
-        editor.apply()
-
-        editor = prefsContinueOnTaskInChosenLevel.edit()
-        editor.putInt("taskInLevel" + level, continueOnTask)
-        editor.apply()
-
-        editor = prefsLevel.edit()
-        editor.putInt("level", level)
-        editor.apply()
+        editSharedPreferences(prefsTaskInLevel, "taskInLevel", taskInLevel)
+        editSharedPreferences(prefsContinueOnTaskInChosenLevel, ("taskInLevel" + level), continueOnTask)
+        editSharedPreferences(prefsLevel, "level", level)
 
         return Pair(level, taskInLevel)
     }
@@ -114,16 +102,48 @@ class SwitchingBetweenTasks {
     private fun unlockNewLevelIfComplete(level: Int, taskInLevel: Int) {
         val numTasksInLevel = getLevel(level).tasks.size
         if (taskInLevel == numTasksInLevel - 1) {
-            val prefsLastUnlockedLevel = mainActivity.applicationContext.getSharedPreferences(
-                "lastUnlockedLevel", Context.MODE_PRIVATE
-            )
+            val prefsLastUnlockedLevel = getSharedPreferences("lastUnlockedLevel")
             var lastUnlockedLevel = prefsLastUnlockedLevel.getInt("lastUnlockedLevel", 1)
+
             if (lastUnlockedLevel < NUM_LEVELS) {
                 lastUnlockedLevel++
-                val editor = prefsLastUnlockedLevel.edit()
-                editor.putInt("lastUnlockedLevel", lastUnlockedLevel)
-                editor.apply()
+                editSharedPreferences(prefsLastUnlockedLevel, "lastUnlockedLevel", lastUnlockedLevel)
+
+                storeNewLevelMessage(lastUnlockedLevel)
             }
         }
+    }
+
+    private fun storeNewLevelMessage(lastUnlockedLevel: Int) {
+        if (lastUnlockedLevel > NUM_LEVELS)
+            return
+
+        val prefsNewUnlockedLevel = getSharedPreferences("newUnlockedLevel")
+        editSharedPreferences(prefsNewUnlockedLevel, "newUnlockedLevel", lastUnlockedLevel)
+    }
+
+    fun readNewLevelMessage() : Int{
+        val prefsNewUnlockedLevel = getSharedPreferences("newUnlockedLevel")
+        return prefsNewUnlockedLevel.getInt("newUnlockedLevel", -1)
+    }
+
+    fun showNewLevelUnlockedMessage(scalesView: ScalesView) {
+        val newLevelMessage = readNewLevelMessage()
+        if (newLevelMessage >= 1 && newLevelMessage <= NUM_LEVELS &&
+                scalesView.showNewLevelMessage == -1) {
+            scalesView.showNewLevelMessage = newLevelMessage
+            storeNewLevelMessage(-1)
+        }
+    }
+
+    private fun getSharedPreferences(name : String) =
+        mainActivity.applicationContext.getSharedPreferences(
+            name, Context.MODE_PRIVATE
+        )
+
+    private fun editSharedPreferences(prefs : SharedPreferences, name : String, value : Int){
+        val editor = prefs.edit()
+        editor.putInt(name, value)
+        editor.apply()
     }
 }

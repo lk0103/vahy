@@ -8,10 +8,7 @@ import androidx.navigation.Navigation
 import com.example.bakalarka.MainActivity
 import com.example.bakalarka.R
 import com.example.bakalarka.objects.menu.RestartIcon
-import com.example.bakalarka.tasks.Level
-import com.example.bakalarka.tasks.Level1
-import com.example.bakalarka.tasks.Level2
-import com.example.bakalarka.tasks.Level3
+import com.example.bakalarka.tasks.*
 
 class MainMenuViewModel : ViewModel() {
     lateinit var mainActivity: MainActivity
@@ -24,11 +21,9 @@ class MainMenuViewModel : ViewModel() {
     fun initialize(mainMenuView: MainMenuView){
         context = mainActivity.applicationContext
         prefsLevel = context.getSharedPreferences("level", Context.MODE_PRIVATE)
-        prefsTaskInLevel =  context.applicationContext.getSharedPreferences(
-            "taskInLevel", Context.MODE_PRIVATE)
+        prefsTaskInLevel =  getSharedPreferences("taskInLevel")
 
-        prefsLastUnlockedLevel =  context.applicationContext.getSharedPreferences(
-            "lastUnlockedLevel", Context.MODE_PRIVATE)
+        prefsLastUnlockedLevel =  getSharedPreferences("lastUnlockedLevel")
         lastUnlockedLevel = prefsLastUnlockedLevel.getInt("lastUnlockedLevel", 1)
         mainMenuView.changeLockedLevels(lastUnlockedLevel)
     }
@@ -54,37 +49,28 @@ class MainMenuViewModel : ViewModel() {
 
     private fun restartLevels(){
         (1..4).forEach { level ->
-            val prefsContinueOnTaskInChosenLevel = context.applicationContext.getSharedPreferences(
-                "taskInLevel" + level, Context.MODE_PRIVATE
-            )
-            var editor = prefsContinueOnTaskInChosenLevel.edit()
-            editor.putInt("taskInLevel" + level, 0)
-            editor.apply()
+            editSharedPreferences(getSharedPreferences("taskInLevel" + level),
+                "taskInLevel" + level, 0)
         }
 
-        val editor = prefsLastUnlockedLevel.edit()
-        editor.putInt("lastUnlockedLevel", 1)
-        editor.apply()
+        editSharedPreferences(prefsLastUnlockedLevel, "lastUnlockedLevel", 1)
         lastUnlockedLevel = 1
+
+        editSharedPreferences(getSharedPreferences( "newUnlockedLevel"),
+                        "newUnlockedLevel", -1)
     }
 
     private fun storeTargetLevelAndTask(level: Int): Int {
-        val prefsContinueOnTaskInChosenLevel = context.applicationContext.getSharedPreferences(
-            "taskInLevel" + level, Context.MODE_PRIVATE
-        )
+        val prefsContinueOnTaskInChosenLevel = getSharedPreferences("taskInLevel" + level)
         var continueOnTask = prefsContinueOnTaskInChosenLevel.getInt("taskInLevel" + level, 0)
 
         val numTasksInLevel = getLevel(level).tasks.size
         if (continueOnTask >= numTasksInLevel)
             continueOnTask = numTasksInLevel - 1
 
-        var editor = prefsLevel.edit()
-        editor.putInt("level", level)
-        editor.apply()
 
-        editor = prefsTaskInLevel.edit()
-        editor.putInt("taskInLevel", continueOnTask)
-        editor.apply()
+        editSharedPreferences(prefsLevel, "level", level)
+        editSharedPreferences(prefsTaskInLevel, "taskInLevel", continueOnTask)
         return continueOnTask
     }
 
@@ -93,6 +79,7 @@ class MainMenuViewModel : ViewModel() {
             1 -> return Level1()
             2 -> return Level2()
             3 -> return Level3()
+            4 -> return Level4()
         }
         return Level1()
     }
@@ -131,5 +118,16 @@ class MainMenuViewModel : ViewModel() {
         }
     }
 
+
+    private fun getSharedPreferences(name : String) =
+        mainActivity.applicationContext.getSharedPreferences(
+            name, Context.MODE_PRIVATE
+        )
+
+    private fun editSharedPreferences(prefs : SharedPreferences, name : String, value : Int){
+        val editor = prefs.edit()
+        editor.putInt(name, value)
+        editor.apply()
+    }
 
 }

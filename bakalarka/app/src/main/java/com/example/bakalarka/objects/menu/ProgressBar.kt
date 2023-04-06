@@ -44,8 +44,8 @@ class ProgressBar(private val context: Context)
         if (value > 0) {
             paint.color = ContextCompat.getColor(context, R.color.icons_color)
             roundedRectangle(
-                canvas, paint, x + widthBorder * 2F, y + widthBorder * 2F,
-                x + widthBar(), y + height - widthBorder * 2F
+                canvas, paint, x + widthBorder * 3F, y + widthBorder * 3.5F,
+                x + widthBar(), y + height - widthBorder * 3.5F
             )
         }
     }

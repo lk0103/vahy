@@ -2,6 +2,7 @@ package com.example.bakalarka.objects
 
 import android.content.Context
 import android.graphics.*
+import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.example.bakalarka.R
@@ -81,13 +82,13 @@ class HolderOfWeights(context: Context,
         sizeChanged(
             widthView * scaleWidthProportion.first / scaleWidthProportion.second - padding * 2,
             heightView - padding * 2,
-            widthView / 500 + padding, heightView / 20 + padding
+            widthView / 500 + padding,  padding
         )
     }
 
     fun changeSizeInMainMenu(w : Int, h : Int, xStart : Int, yStart : Int){
         super.sizeChanged(w, h, xStart, yStart)
-        heightWithoutBowl = height * heightWithoutBowlOriginalMenuImage / heightOriginalMenuImage
+        heightWithoutBowl = (height * heightWithoutBowlOriginalMenuImage / heightOriginalMenuImage) * 101 / 100
         changeSizeInsideObj()
     }
 
@@ -120,15 +121,21 @@ class HolderOfWeights(context: Context,
     }
 
     override fun changeSizeInsideObj() {
-        if (biggerNumEquationBoxes < 0)
+        if (biggerNumEquationBoxes < 0) {
             biggerNumEquationBoxes = equationObjectBoxes.size
+        }
+        val blockWidth = width / if (biggerNumEquationBoxes <= 0) 1 else biggerNumEquationBoxes
+        val padding = blockWidth * ( biggerNumEquationBoxes - equationObjectBoxes.size) / 2
+
         (0 until equationObjectBoxes.size).forEach { i ->
             equationObjectBoxes[i].sizeChanged(
-                width / biggerNumEquationBoxes, calculateHeightBox(),
-                x + i * width / equationObjectBoxes.size,
+                blockWidth, calculateHeightBox(),
+                x + i * width / equationObjectBoxes.size + padding,
                 y + heightWithoutBowl / 3
             )
         }
+        Log.i("velkost", "changeSizeInsideObj holder " +
+                (if (left) "left" else "right") + " : " + biggerNumEquationBoxes)
     }
 
     private fun calculateHeightBox() = heightWithoutBowl * 2 / 3

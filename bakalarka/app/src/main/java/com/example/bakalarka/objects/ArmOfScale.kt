@@ -48,7 +48,7 @@ class ArmOfScale(private val context : Context, private var angle : Float = 0F) 
         sizeChanged(
             widthView * scaleWidthProportion.first / scaleWidthProportion.second - padding * 2,
             heightView - padding * 2,
-            widthView / 500 + padding, heightView / 20 + padding
+            widthView / 500 + padding,  padding
         )
     }
 

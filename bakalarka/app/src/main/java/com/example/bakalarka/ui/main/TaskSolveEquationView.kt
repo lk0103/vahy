@@ -25,6 +25,8 @@ class TaskSolveEquationView(context: Context, attrs: AttributeSet)
 
     var checkSolution = false
 
+    private var messageTimer : CountDownTimer? = null
+
     init {
         screenObjects.add(DoneIcon(context))
         screenObjects.add(TaskSolveEquation(context, listOf()))
@@ -61,6 +63,7 @@ class TaskSolveEquationView(context: Context, attrs: AttributeSet)
     @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas?) {
         if (canvas == null) return
+
         paint.color = ContextCompat.getColor(context, R.color.icons_color)
         paint.strokeWidth = 4F
         canvas.drawLine(0F, heightView.toFloat() - 10,
@@ -123,7 +126,7 @@ class TaskSolveEquationView(context: Context, attrs: AttributeSet)
 
     fun failSuccessShow(){
         screenTouchDisabled = true
-        object : CountDownTimer(3000, 3000){
+        messageTimer = object : CountDownTimer(3000, 3000){
             override fun onTick(p0: Long) {
             }
 
@@ -132,6 +135,13 @@ class TaskSolveEquationView(context: Context, attrs: AttributeSet)
                 invalidate()
             }
         }.start()
+    }
+
+    fun cancelMessage() {
+        messageTimer?.cancel()
+        screenTouchDisabled = false
+        invalidate()
+        messageTimer = null
     }
 
     fun setMapSolutions(variables : List<ScaleVariable>){

@@ -69,8 +69,8 @@ open class ScreenObject(var dragFrom : Boolean, var dragTo : Boolean){
 
 
     open fun isIn(obj : ScreenObject) : Boolean {
-        val x1 = if (this is EquationObject) x - width / 2 else x
-        val y1 = if (this is EquationObject) y - height / 2 else y
+        val x1 = if (this is EquationObject || this is OpenPackage) x - width / 2 else x
+        val y1 = if (this is EquationObject || this is OpenPackage) y - height / 2 else y
         val objX1 = if (obj is EquationObject) obj.x - obj.width / 2 else obj.x
         val objY1 = if (obj is EquationObject) obj.y - obj.height / 2 else obj.y
         if (!visibility)

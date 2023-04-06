@@ -1,10 +1,9 @@
 package com.example.bakalarka.ui.main
 
-import android.content.Context
+import android.os.CountDownTimer
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
-import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.navigation.Navigation
 import com.example.bakalarka.MainActivity
@@ -18,7 +17,7 @@ import com.example.vahy.equation.Addition
 class BuildScaleFromEqViewModel : ViewModel() {
     lateinit var mainActivity: MainActivity
     var switchBetweenTasks = SwitchingBetweenTasks()
-    var controlMenuTasks = ControlMenuTasks()
+    var controlMenuTasks = ControlTasks()
 
     @JvmName("setMainActivity1")
     fun setMainActivity(mainactivity : MainActivity){
@@ -27,38 +26,45 @@ class BuildScaleFromEqViewModel : ViewModel() {
         controlMenuTasks.mainActivity = mainactivity
     }
 
+    fun changeEquation(clickedView: View, event: MotionEvent, buildScaleView: BuildScaleFromEqView) : Boolean{
+        clickedView.onTouchEvent(event)
+
+        if (clickedView !is ScalesView || !clickedView.isSystemOf2Eq){
+            return false
+        }
+
+        buildScaleView.setIndexMarked(clickedView.getIndexEquation())
+        return true
+    }
+
     fun generateNewEq(clickedView: View, event: MotionEvent, scalesView : ScalesView) : Boolean{
-        if (clickedView is BuildScaleFromEqView && clickedView.screenTouchDisabled)
-            return true
-        val res = checkSolution(clickedView, event, scalesView)
-        if (res) {
-            Log.i("levels", "generate new eq build")
-            val (level, continueOnTask) = switchBetweenTasks.storeTargetLevelAndTask()
-            switchToChosenLevel(level, continueOnTask, clickedView)
+        if (checkSolution(clickedView, event, scalesView)) {
+            waitForSuccessAnimation(scalesView, clickedView)
         }
         return true
     }
 
+    private fun waitForSuccessAnimation(scalesView: ScalesView, clickedView: View) {
+        Log.i("levels", "generate new eq build")
+        val (level, continueOnTask) = switchBetweenTasks.storeTargetLevelAndTask()
+
+        object : CountDownTimer(2000, 20) {
+            override fun onTick(p0: Long) {
+                if (!scalesView.screenTouchDisabled) {
+                    this.cancel()
+                    onFinish()
+                }
+            }
+
+            override fun onFinish() {
+                switchToChosenLevel(level, continueOnTask, clickedView)
+            }
+        }.start()
+    }
+
 
     fun generateEquation(scalesView: ScalesView, buildScaleView : BuildScaleFromEqView) {
-        val level = switchBetweenTasks.getLevelInt()
-
-        val prefsTaskInLevel =  mainActivity.applicationContext.getSharedPreferences(
-            "taskInLevel", Context.MODE_PRIVATE)
-        val taskInLevel = prefsTaskInLevel.getInt("taskInLevel", 0)
-
-        val levelInfo = switchBetweenTasks.getLevel(level)
-        val generator = levelInfo.tasks[taskInLevel].second
-
-        var sysEq = SystemOfEquations(mutableListOf())
-        while (generator != null && sysEq.solutions.size <= 0) {
-            if (generator is EquationsGenerator)
-                sysEq = generator.generateLinearEquationWithNaturalSolution()
-            else if (generator is System2EqGenerator)
-                sysEq = generator.generateSystem2DiophantineEquations()
-            Log.i("generate", sysEq.toString())
-            Log.i("generate", sysEq.solutions.toString())
-        }
+        val sysEq = controlMenuTasks.generateSystemEq()
 
         var emptySysOfEquations = SystemOfEquations(listOf(
             Equation(Addition(mutableListOf()), Addition(mutableListOf()))
@@ -70,26 +76,59 @@ class BuildScaleFromEqViewModel : ViewModel() {
                 Equation(Addition(mutableListOf()), Addition(mutableListOf())),
                 Equation(Addition(mutableListOf()), Addition(mutableListOf()))))
         }
-        scalesView.setBuildEquationTask(true, sysEq.containsBracket())
+
+        scalesView.setHasBalloon(sysEq.toString().contains("-"))
+        scalesView.setBuildEquationTask(true, sysEq)
 
         scalesView.setEquation(
             emptySysOfEquations, 0)
 
         Log.i("generate", "vygenerovana rovnica: " + sysEq.equations.toString())
         buildScaleView.setEquations(sysEq.equations)
+
+        switchBetweenTasks.showNewLevelUnlockedMessage(scalesView)
     }
 
-    fun checkSolution(clickedView: View, event: MotionEvent, scalesView: ScalesView) : Boolean{
+    private fun checkSolution(clickedView: View, event: MotionEvent, scalesView: ScalesView) : Boolean{
+        if (clickedView is BuildScaleFromEqView && !scalesView.screenTouchDisabled &&
+                clickedView.screenTouchDisabled)
+            clickedView.cancelMessage()
+
         clickedView.onTouchEvent(event)
-        if (clickedView !is BuildScaleFromEqView || !clickedView.checkSolution){
+
+        if (clickedView !is BuildScaleFromEqView ||
+            (!clickedView.checkSolution && clickedView.indexTouchedEquation == -1
+                    && scalesView.isSystemOf2Eq)){
             return false
         }
+        if (switchEquations(clickedView, scalesView)) return false
+
+        return check(clickedView, event, scalesView)
+    }
+
+    private fun check(clickedView: BuildScaleFromEqView, event: MotionEvent,
+                      scalesView: ScalesView): Boolean {
+        if (!clickedView.checkSolution)
+            return false
+
         clickedView.checkSolution = false
         val rightAnswer = CheckBuildTaskSolution().checkSolution(clickedView, event, scalesView)
         scalesView.failSuccessShow(rightAnswer)
-        if (clickedView is BuildScaleFromEqView)
+
+        if (clickedView is BuildScaleFromEqView) {
             clickedView.failSuccessShow()
+        }
         return rightAnswer
+    }
+
+    private fun switchEquations(clickedView: BuildScaleFromEqView, scalesView: ScalesView): Boolean {
+        if (clickedView.indexTouchedEquation > -1 && scalesView.isSystemOf2Eq) {
+            scalesView.switchToEqWithIndex(clickedView.indexTouchedEquation)
+            clickedView.setIndexMarked(clickedView.indexTouchedEquation)
+            clickedView.indexTouchedEquation = -1
+            return true
+        }
+        return false
     }
 
     fun onTouch(clickedView: View, event: MotionEvent, scalesView: ScalesView) : Boolean{

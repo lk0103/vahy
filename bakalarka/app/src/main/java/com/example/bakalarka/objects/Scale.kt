@@ -30,7 +30,7 @@ class Scale(context: Context, dragFrom : Boolean = true, dragTo : Boolean = true
 
     private val scaleWidthSmaller = Pair(37, 48)
     private val scaleWidthBigger = Pair(4, 5)
-    private val scaleWidthIcon = Pair(1, 10)
+    private val scaleWidthIcon = Pair(1, 8)
     private var scaleWidthProportion = scaleWidthSmaller
 
     var isIcon = false
@@ -52,19 +52,19 @@ class Scale(context: Context, dragFrom : Boolean = true, dragTo : Boolean = true
     }
 
     fun changeSizeScreenObjects(widthView : Int, heightView : Int, padding : Int) {
-        val biggerNumEquationBoxes = Math.max(leftHolder.getNumberBoxes(),
-                                                rightHolder.getNumberBoxes())
+        val pad = if (isIcon) padding / 2 else padding * 2
+        val biggerNumEquationBoxes = getMaxNumberBoxes()
         screenObjects.forEach { obj ->
             if (obj is BaseOfScale) {
-                obj.changeSizeInScaleView(widthView, heightView, padding, scaleWidthProportion)
+                obj.changeSizeInScaleView(widthView, heightView, pad, scaleWidthProportion)
                 x = obj.x
                 y = obj.y
                 width = obj.width
                 height = obj.height
             } else if (obj is ArmOfScale) {
-                obj.changeSizeInScaleView(widthView, heightView, padding, scaleWidthProportion)
+                obj.changeSizeInScaleView(widthView, heightView, pad, scaleWidthProportion)
             } else if (obj is HolderOfWeights) {
-                obj.changeSizeInScaleView(widthView, heightView, padding,
+                obj.changeSizeInScaleView(widthView, heightView, pad,
                                     scaleWidthProportion, biggerNumEquationBoxes)
             }else obj.sizeChanged(widthView, heightView, 0, 0)
         }
@@ -88,21 +88,34 @@ class Scale(context: Context, dragFrom : Boolean = true, dragTo : Boolean = true
     }
 
     fun checkEquality(equation : Equation, scaleView: ScalesView){
-        if (buildEquationTask)
-            return
+        scaleView.changeConstantSizeBorders()
+        changeSizeBoxesInHolders(if (scaleView.isSystemOf2Eq) scaleView.getMaxNumBoxes()
+                                else getMaxNumberBoxes())
+
         val comparison = equation.compareLeftRight()
         val newAngle = maxAngleScaleAnim * comparison
         if (angleOfScale != newAngle){
             rotationScaleAnimation(newAngle, scaleView)
         }
-        val biggerNumEquationBoxes = Math.max(leftHolder.getNumberBoxes(),
-            rightHolder.getNumberBoxes())
+        Log.i("generate", "" + equation + " sol: " + equation.solutions)
+        Log.i("generate", "compareLeftRight: " + equation.compareLeftRight() +
+        " left: " + equation.left.evaluate(equation.solutions) + " right: " +
+        equation.right.evaluate(equation.solutions))
+    }
+
+    fun changeSizeBoxesInHolders(biggerNumEquationBoxes : Int) {
         screenObjects.filter { it is HolderOfWeights }.forEach {
             (it as HolderOfWeights).setBiggerNumberBoxes(biggerNumEquationBoxes)
         }
     }
 
+    fun getMaxNumberBoxes() = Math.max(
+        leftHolder.getNumberBoxes(),
+        rightHolder.getNumberBoxes()
+    )
+
     fun rotationScaleAnimation(targetAngle : Float, scaleView : ScalesView){
+        scaleView.isRotating = true
         scaleView.screenTouchDisabled = true
         var deltaAngle = 0.08F
         val countDownInterval = 18L
@@ -120,6 +133,7 @@ class Scale(context: Context, dragFrom : Boolean = true, dragTo : Boolean = true
                 angleOfScale = targetAngle
                 rotateScale(angleOfScale, scaleView)
                 scaleView.screenTouchDisabled = false
+                scaleView.isRotating = false
             }
         }.start()
 

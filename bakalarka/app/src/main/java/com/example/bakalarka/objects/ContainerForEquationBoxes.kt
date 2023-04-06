@@ -5,7 +5,6 @@ import android.util.Log
 import com.example.bakalarka.equation.Bracket
 import com.example.bakalarka.equation.SystemOfEquations
 import com.example.vahy.equation.*
-import com.example.vahy.objects.OpenPackage
 import com.example.vahy.objects.ScreenObject
 
 open class ContainerForEquationBoxes(protected val context: Context,
@@ -26,9 +25,6 @@ open class ContainerForEquationBoxes(protected val context: Context,
 
     open fun changeSizeInsideObj() {
     }
-
-    fun insideVariableTypes(): List<EquationObject> =
-        equationObjectBoxes.flatMap { it.returnListInsideVariableTypes() }.toList()
 
     fun setEquation(p : Addition, screenVarToStr : MutableMap<String, String>){
         equationObjectBoxes = mutableListOf()
@@ -190,8 +186,10 @@ open class ContainerForEquationBoxes(protected val context: Context,
             throw java.lang.Exception("maximum capacity of boxes")
         }
         equationObjectBoxes.add(box)
-        if (biggerNumEquationBoxes < equationObjectBoxes.size)
+        if (biggerNumEquationBoxes < equationObjectBoxes.size) {
             setBiggerNumberBoxes(equationObjectBoxes.size)
+            return
+        }
         changeSizeInsideObj()
     }
 
@@ -272,10 +270,13 @@ open class ContainerForEquationBoxes(protected val context: Context,
     override fun returnPackages() : MutableList<Package> =
         equationObjectBoxes.flatMap { it.returnPackages()}.toMutableList()
 
-    fun getAllEquationsObjects() : Set<String> =
+    fun getAllEquationsObjectsTypes() : Set<String> =
         equationObjectBoxes.flatMap { it.insideObject }
             .map { it::class.toString()  }.toSet()
 
+    fun getAllConstantValues() =
+        equationObjectBoxes.flatMap { it.insideObject }.filter { it is Weight }
+            .map { (it as Weight).evaluate() }
 
     fun isFull() = equationObjectBoxes.size >= maxNumberOfBoxes
 
@@ -284,5 +285,9 @@ open class ContainerForEquationBoxes(protected val context: Context,
     fun setBiggerNumberBoxes(number : Int){
         biggerNumEquationBoxes = number
         changeSizeInsideObj()
+    }
+
+    fun setConsSizeBorders(borders : MutableList<Int>){
+        equationObjectBoxes.forEach { it.constantSizeRange = borders }
     }
 }

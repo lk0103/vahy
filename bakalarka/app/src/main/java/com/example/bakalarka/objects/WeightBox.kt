@@ -10,7 +10,7 @@ class WeightBox: EquationObjectBox() {
 
     override fun calculatePositions() {
         val yBottom = y + height
-        val yDelta = heightEqObj / 4
+        val yDelta = heightEqObj / 3
         val yDeltaFirst = heightEqObj / 5
         val xDelta = (width - 5 * (widthEqObj) / 2) / 2
         val zSeq = mutableListOf(10, 9, 8, 7, 6, 5, 4, 3)

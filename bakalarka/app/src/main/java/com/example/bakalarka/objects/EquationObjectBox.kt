@@ -2,6 +2,7 @@ package com.example.bakalarka.objects
 
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.util.Log
 import com.example.vahy.objects.ScreenObject
 
 open class EquationObjectBox ()
@@ -14,6 +15,8 @@ open class EquationObjectBox ()
     protected var maxNumberOfObj = 0
     protected var cols = 0.0
     protected var rows = 0.0
+
+    var constantSizeRange = mutableListOf<Int>()
 
     override fun draw(canvas: Canvas, paint: Paint){
         insideObject.sortedByDescending { it.z }.forEach { obj ->
@@ -34,12 +37,21 @@ open class EquationObjectBox ()
     }
 
     open fun changeSizeObj() {
+        val weightSizeProportions = listOf(Pair(26, 30), Pair(28, 30), Pair(1, 1))
+            .subList(3 - constantSizeRange.size, 3)
         (0 until insideObject.size).forEach { i ->
             val x = positions[i][0]
             val y = positions[i][1]
             val z = positions[i][2]
             insideObject[i].setZ(z)
-            insideObject[i].sizeChanged(widthEqObj, heightEqObj, x, y)
+            var w = widthEqObj
+            if (insideObject[i] is Weight && constantSizeRange.size > 0) {
+                var ix = 0
+                while (ix < constantSizeRange.size - 1 &&
+                    insideObject[i].evaluate() > constantSizeRange[ix]) ix++
+                w = widthEqObj * weightSizeProportions[ix].first / weightSizeProportions[ix].second
+            }
+            insideObject[i].sizeChanged(w, heightEqObj, x, y)
         }
     }
 

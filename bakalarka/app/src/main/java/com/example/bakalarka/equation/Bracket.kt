@@ -19,7 +19,7 @@ class Bracket(var polynom : Addition) : Polynom(){
         val numVarTypes = mutableMapOf<String, Int>()
         polynom.addends.forEach { pol ->
             pol.countNumVariableTypes().forEach{
-                val newValue = (numVarTypes.getOrDefault(it.key, 0) + it.value)
+                val newValue = ((numVarTypes[it.key] ?: 0) + it.value)
                 numVarTypes[it.key] = newValue
             }
         }
@@ -30,7 +30,7 @@ class Bracket(var polynom : Addition) : Polynom(){
         val numConsValuess = mutableMapOf<Int, Int>()
         polynom.addends.forEach { pol ->
             pol.countNumConsValues().forEach{
-                val newValue = (numConsValuess.getOrDefault(it.key, 0) + it.value)
+                val newValue = ((numConsValuess[it.key] ?: 0) + it.value)
                 numConsValuess[it.key] = newValue
             }
         }

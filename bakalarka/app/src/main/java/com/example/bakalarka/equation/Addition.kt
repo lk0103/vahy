@@ -1,5 +1,6 @@
 package com.example.vahy.equation
 
+import android.util.Log
 import com.example.bakalarka.equation.Bracket
 
 class Addition(var addends : MutableList<Polynom>) : Polynom(){
@@ -28,7 +29,7 @@ class Addition(var addends : MutableList<Polynom>) : Polynom(){
         val numVarTypes = mutableMapOf<String, Int>()
         addends.forEach { pol ->
             pol.countNumVariableTypes().forEach{
-                val newValue = (numVarTypes.getOrDefault(it.key, 0) + it.value)
+                val newValue = ((numVarTypes[it.key] ?: 0) + it.value)
                 numVarTypes[it.key] = newValue
             }
         }
@@ -39,7 +40,7 @@ class Addition(var addends : MutableList<Polynom>) : Polynom(){
         val numConsValues = mutableMapOf<Int, Int>()
         addends.forEach { pol ->
             pol.countNumConsValues().forEach{
-                val newValue = (numConsValues.getOrDefault(it.key, 0) + it.value)
+                val newValue = ((numConsValues[it.key] ?: 0) + it.value)
                 numConsValues[it.key] = newValue
             }
         }
@@ -50,7 +51,7 @@ class Addition(var addends : MutableList<Polynom>) : Polynom(){
         val numBrackets = mutableMapOf<Bracket, Int>()
         addends.forEach { pol ->
             pol.countNumBrackets().forEach{
-                val newValue = (numBrackets.getOrDefault(it.key, 0) + it.value)
+                val newValue = ((numBrackets[it.key] ?: 0) + it.value)
                 numBrackets[it.key] = newValue
             }
         }
@@ -61,8 +62,16 @@ class Addition(var addends : MutableList<Polynom>) : Polynom(){
         addends.forEach { it.setAllBracketInsides(bracketInside) }
     }
 
-    override fun toString(): String =
-        addends.map { it.toString() }.joinToString(separator = " + ")
+    override fun toString(): String {
+        var str = ""
+        addends.forEach {
+            if (str.isNotEmpty()){
+                str += if (it is Constant && it.evaluate(mapOf()) < 0) " - " else " + "
+            }
+            str += it.toString().replace("-", "")
+        }
+        return str
+    }
 
     override fun equals(other: Any?): Boolean {
         if (!(other is Addition)) return false
@@ -77,6 +86,11 @@ class Addition(var addends : MutableList<Polynom>) : Polynom(){
             val added = polynom.addToConstant(fromValue, value)
             if (added != null) {
                 if (polynom is Constant){
+                    addends.remove(polynom)
+                }else if ((polynom as Multiplication).getMultiple().evaluate(mapOf()) == 0) {
+                    addends.remove(polynom)
+                } else if ((polynom as Multiplication).getMultiple().evaluate(mapOf()) == 1) {
+                    addends.add(polynom.getPolynom())
                     addends.remove(polynom)
                 }
                 if (added.evaluate(mapOf()) != 0) addends.add(added)
@@ -157,7 +171,7 @@ class Addition(var addends : MutableList<Polynom>) : Polynom(){
 
     private fun addObj(added: Polynom?, polynom: Polynom): Boolean {
         if (added != null) {
-            if (!(polynom is Multiplication)) {
+            if (polynom !is Multiplication) {
                 addends.remove(added)
                 addends.add(Multiplication(added, Constant(2)))
             }
