@@ -74,7 +74,6 @@ class ArmOfScale(private val context : Context, private var angle : Float = 0F) 
     }
 
 
-    //////////////////////////////////////
     override fun draw(canvas: Canvas, paint: Paint) {
         if (image == null && !visibility)
             return

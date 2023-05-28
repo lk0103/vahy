@@ -1,11 +1,10 @@
 package com.example.bakalarka.tasks
 
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import com.example.bakalarka.equation.Bracket
 import com.example.bakalarka.equation.Equation
-import com.example.bakalarka.ui.main.BuildScaleFromEqView
+import com.example.bakalarka.ui.main.BuildScaleMenuView
 import com.example.vahy.ScalesView
 import com.example.vahy.equation.Addition
 
@@ -13,7 +12,7 @@ class CheckBuildTaskSolution {
 
     fun checkSolution(clickedView: View, event: MotionEvent, scalesView: ScalesView) : Boolean{
         clickedView.onTouchEvent(event)
-        if (clickedView !is BuildScaleFromEqView || !clickedView.checkSolution)
+        if (clickedView !is BuildScaleMenuView || !clickedView.checkSolution)
             return false
         clickedView.checkSolution = false
 

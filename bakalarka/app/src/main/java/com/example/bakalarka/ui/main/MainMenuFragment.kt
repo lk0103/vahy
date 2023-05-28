@@ -13,29 +13,30 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.bakalarka.MainActivity
 import com.example.bakalarka.R
 import com.example.bakalarka.BR.*
+import com.example.bakalarka.databinding.FragmentCreateTaskBinding
 import com.example.bakalarka.databinding.FragmentMainMenuBinding
-import kotlinx.android.synthetic.main.fragment_main_menu.*
-import kotlinx.android.synthetic.main.fragment_solve_equation.*
+import com.example.bakalarka.tasks.SwitchingBetweenTasks
 
 
 class MainMenuFragment : Fragment() {
-
-    private lateinit var binding: FragmentMainMenuBinding
+    private var _binding: FragmentMainMenuBinding? = null
+    private val binding get() = _binding!!
     private lateinit var viewModel: MainMenuViewModel
 
 
     override fun onStart() {
         super.onStart()
         viewModel.mainActivity = mainactivity
-        viewModel.initialize(MainMenuView)
+        viewModel.initialize(binding.MainMenuView, binding.backgroundView)
     }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_main_menu, container, false)
-        binding.setLifecycleOwner (this)
-        return binding.root
+        _binding = FragmentMainMenuBinding.inflate(inflater, container, false)
+        val view = binding.root
+        return view
     }
 
     lateinit var mainactivity : MainActivity
@@ -50,14 +51,22 @@ class MainMenuFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProvider(this).get(MainMenuViewModel::class.java)
         binding.setVariable(myViewModel, viewModel)
-        backgroundView.changeBackground(R.drawable.blue_pattern, R.color.main_menu_background)
 
-        MainMenuView.setOnTouchListener { view, motionEvent ->
-            viewModel.onTouch(MainMenuView, motionEvent)
+        val lastUnlockedLevel = mainactivity.applicationContext.getSharedPreferences(
+                                prefsNameLastUnlocked, Context.MODE_PRIVATE)
+                                .getInt(prefsNameLastUnlocked, 1)
+        val switch = SwitchingBetweenTasks()
+        switch.mainActivity = mainactivity
+        switch.changeBackground(binding.backgroundView, lastUnlockedLevel)
+
+        binding.MainMenuView.setOnTouchListener { view, motionEvent ->
+            viewModel.onTouch(binding.MainMenuView, motionEvent)
         }
-
     }
 
-
+    override fun onResume() {
+        super.onResume()
+        binding.MainMenuView.changeSizeCreateIcons()
+    }
 
 }

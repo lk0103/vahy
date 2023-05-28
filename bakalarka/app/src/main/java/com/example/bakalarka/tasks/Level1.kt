@@ -1,13 +1,12 @@
 package com.example.bakalarka.tasks
 
-import android.util.Log
 import kotlin.random.Random
 
 class Level1 : Level(){
 
     init {
-        tasks = listOf(task1(), task2(), task3(), task4(), task5(),
-                        task6(), task7())
+        tasks = listOf(task1(), task2(), task3(), task4()
+           , task5(),task6(), task7())
     }
 
     fun task1() : Pair<String, EquationsGenerator>{
@@ -24,7 +23,7 @@ class Level1 : Level(){
             generator.enableConsLeft = true
         }
 
-        generator.rangeVarSolutions = Pair(4, 8)
+        generator.rangeVarSolutions = Pair(5, 10)
 
         return Pair("solve", generator)
     }
@@ -42,7 +41,7 @@ class Level1 : Level(){
             generator.enableConsLeft = true
         }
 
-        generator.rangeVarSolutions = Pair(4, 7)
+        generator.rangeVarSolutions = Pair(4, 8)
 
         return Pair("solve", generator)
     }
@@ -62,7 +61,7 @@ class Level1 : Level(){
         }
         generator.enableConsRight = true
         generator.enableConsLeft = true
-        generator.rangeVarSolutions = Pair(2, 5)
+        generator.rangeVarSolutions = Pair(3, 6)
 
         return Pair("solve", generator)
     }
@@ -71,18 +70,18 @@ class Level1 : Level(){
     fun task4() : Pair<String, EquationsGenerator>{
         val generator = EquationsGenerator()
         if (Random.nextInt(2) >= 1) {
-            generator.rangeNumVarLeft = Pair(3, 4)
+            generator.rangeNumVarLeft = Pair(4, 5)
             generator.rangeNumConsLeft = Pair(1, 1)
             generator.rangeNumConsRight = Pair(2, 3)
         }
         else {
-            generator.rangeNumVarRight = Pair(3, 4)
+            generator.rangeNumVarRight = Pair(4, 5)
             generator.rangeNumConsLeft = Pair(2, 3)
             generator.rangeNumConsRight = Pair(1, 1)
         }
         generator.enableConsRight = true
         generator.enableConsLeft = true
-        generator.rangeVarSolutions = Pair(5, 8)
+        generator.rangeVarSolutions = Pair(6, 10)
 
         return Pair("solve", generator)
     }
@@ -124,7 +123,7 @@ class Level1 : Level(){
         }
         generator.enableConsRight = true
         generator.enableConsLeft = true
-        generator.rangeVarSolutions = Pair(3, 7)
+        generator.rangeVarSolutions = Pair(5, 9)
 
         return Pair("solve", generator)
     }
@@ -145,7 +144,7 @@ class Level1 : Level(){
         }
         generator.enableConsRight = true
         generator.enableConsLeft = true
-        generator.rangeVarSolutions = Pair(4, 9)
+        generator.rangeVarSolutions = Pair(9, 12)
 
         return Pair("solve", generator)
     }

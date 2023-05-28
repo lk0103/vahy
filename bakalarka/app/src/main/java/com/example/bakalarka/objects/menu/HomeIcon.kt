@@ -10,7 +10,8 @@ class HomeIcon(context: Context)
     : Icon(context) {
 
     init {
-        image = ContextCompat.getDrawable(context, R.drawable.home)!!.toBitmap()
+        imageType = R.drawable.home
+        image = ContextCompat.getDrawable(context, imageType)!!.toBitmap()
         width = 300
         height = 300
         image = Bitmap.createScaledBitmap(image!!, width, height, true)

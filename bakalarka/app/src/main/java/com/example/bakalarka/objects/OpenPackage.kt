@@ -33,19 +33,12 @@ class OpenPackage(context : Context, dragFrom : Boolean = true, dragTo : Boolean
         image = Bitmap.createScaledBitmap(image!!, w, h, true)
     }
 
-    fun changeSizeInScaleView(widthView : Int, heightView : Int, padding : Int,
-                              objsToChooseFromVis: Boolean){
+    fun changeSizeInScaleView(widthView : Int, heightView : Int, padding : Int){
         val w = widthView * 11 / 40 - padding * 2
-        if (objsToChooseFromVis)
-            sizeChanged(
-                w, heightView * 8 / 16 - 2 * padding,
-                widthView * 6 / 7  + padding,heightView - heightView * 58 / 240
-            )
-        else
-            sizeChanged(
-                w, heightView / 2 - padding * 2,
-                widthView * 7 / 8 + padding, heightView / 4 + padding
-            )
+        sizeChanged(
+            w, heightView * 8 / 16 - 2 * padding,
+            widthView * 6 / 7  + padding,heightView - heightView * 58 / 240
+        )
     }
 
     override fun sizeChanged(w: Int, h: Int, xStart: Int, yStart: Int) {

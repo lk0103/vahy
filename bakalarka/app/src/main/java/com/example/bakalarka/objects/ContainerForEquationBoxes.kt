@@ -113,35 +113,6 @@ open class ContainerForEquationBoxes(protected val context: Context,
         return true
     }
 
-    fun substractValueFromOtherValueIDifferentHolder(originalHolder : ContainerForEquationBoxes,
-                                                     obj : EquationObject,
-                                                     sysEq: SystemOfEquations) : Boolean{
-        if (obj !is ScaleValue){
-            return false
-        }
-        val originalObj = originalHolder.getDraggedObject()
-        if (originalObj == null || originalObj !is ScaleValue) return false
-
-        val box = equationObjectBoxes.filter { ( it is WeightBox || it is BallonBox)
-                && it.isIn(obj) }.sortedBy { it.z }.firstOrNull()
-        if (box == null) return false
-
-        val overlappingObj = box.getOverlappingScreenValue(obj, originalObj)
-        if (overlappingObj == null) return false
-        val incValue = if(obj is Weight) -1 else 1
-        addToConstant(overlappingObj.evaluate(), incValue)
-        originalHolder.addToConstant(originalObj.evaluate(), incValue)
-        overlappingObj.add(incValue)
-        originalObj.add(incValue)
-        if (originalObj.isNotValidValue()){
-            originalHolder.removeDraggedObject(sysEq, true)
-        }
-        if (overlappingObj.isNotValidValue()){
-            removeDraggedObject(sysEq, true, overlappingObj)
-        }
-        return true
-    }
-
 
     private fun addObjToPolynom(obj : EquationObject, sysEq: SystemOfEquations){
         if (obj is ScaleValue){
@@ -153,7 +124,6 @@ open class ContainerForEquationBoxes(protected val context: Context,
             if (bracket != null) polynom.addBracket(bracket)
             else polynom.addBracket(Bracket(Addition(mutableListOf())))
         }
-        Log.i("rovnica", "container addObject to polynom: " + polynom)
     }
 
     private fun removeObjFromPolynom(obj : EquationObject?, sysEq: SystemOfEquations){
@@ -167,13 +137,10 @@ open class ContainerForEquationBoxes(protected val context: Context,
             val bracket = sysEq.findBracket()
             if (bracket != null) polynom.removeBracket(bracket)
         }
-       Log.i("rovnica", "container removeObj: " + polynom)
     }
 
     private fun addToConstant(toValue : Int, value : Int){
         polynom.addToConstant(toValue, value)
-        Log.i("rovnica", "container addToConstant: tovalue: " + toValue +
-                " value: " + value + " rovnica: "+ polynom)
     }
 
     private fun removeBox(box: EquationObjectBox?) {
@@ -221,7 +188,6 @@ open class ContainerForEquationBoxes(protected val context: Context,
                             deletedObj : EquationObject? = getDraggedObject()){
         if (delete){
             removeObjFromPolynom(deletedObj, sysEq)
-            Log.i("rovnica", "remove dragged: " + polynom + " dragged value: " + deletedObj?.evaluate())
         }
         for (box in equationObjectBoxes){
             if (deletedObj == getDraggedObject()) {
@@ -248,12 +214,31 @@ open class ContainerForEquationBoxes(protected val context: Context,
         return clicked
     }
 
+    fun beforeEarthquakeAnim(){
+        equationObjectBoxes.forEach { it.beforeEarthquakeAnim() }
+    }
+
+    fun changePosition(){
+        equationObjectBoxes.forEach { it.changePosition() }
+    }
+
+    fun afterEarthquakeAnim(){
+        equationObjectBoxes.forEach { it.afterEarthquakeAnim() }
+    }
+
+
     override fun returnDraggedObject(x1: Int, y1: Int): EquationObject? {
-        val draggedObj = mutableListOf<EquationObject?>()
+        val draggedObjs = mutableListOf<EquationObject?>()
         for (box in equationObjectBoxes){
-            draggedObj.add(box.returnDraggedObject(x1, y1))
+            draggedObjs.add(box.returnDraggedObject(x1, y1))
         }
-        return draggedObj.filter { it != null }.sortedBy { it?.z }.firstOrNull()
+
+        val draggedObj = draggedObjs.filter { it != null }.sortedBy { it?.z }.firstOrNull()
+
+        if (dragFrom && !dragTo)
+            return draggedObj?.makeCopy()
+
+        return draggedObj
     }
 
     override fun returnClickedObject(x1: Int, y1: Int): EquationObject? {

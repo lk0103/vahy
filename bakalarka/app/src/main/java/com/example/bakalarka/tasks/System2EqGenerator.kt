@@ -39,6 +39,10 @@ class System2EqGenerator : Generator(){
         val sys2eq = SystemOfEquations(eq.map { it!! }.toMutableList())
         sys2eq.equations.forEach { it.simplify() }
         sys2eq.solve()
+        if (sys2eq.notOneSolution()) {
+            Log.i("generate", "INFINITE SOLUTIONS " + sys2eq.solutions + " " + sys2eq)
+            return SystemOfEquations(mutableListOf())
+        }
         Log.i("generate", "real solutions: " + sys2eq.solutions)
         return sys2eq
     }

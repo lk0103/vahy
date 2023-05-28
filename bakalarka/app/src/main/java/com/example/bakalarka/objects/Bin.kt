@@ -7,8 +7,6 @@ import androidx.core.graphics.drawable.toBitmap
 import com.example.bakalarka.R
 import com.example.bakalarka.objects.ObjectsToChooseFrom
 
-//mozno ked dvojklik na kos - tak sa vsetko vyberie
-//a vrati sa rovnica do povodneho stavu
 class Bin(private val context : Context) :
     ScreenObject(false, true){
 
@@ -34,6 +32,10 @@ class Bin(private val context : Context) :
         if (openPackageVis && objsToChooseFromVis)
             sizeChanged(widthView / 10 - padding * 2, heightView - padding * 2,
                 widthView * 33 / 48 + padding, padding)
+
+        else if (openPackageVis && !objsToChooseFromVis)
+            sizeChanged(widthView / 9 - padding * 2, heightView - padding * 2,
+                widthView * 78 / 96 + padding, heightView / 10)
         else
             sizeChanged(
                 widthView / 9 - padding * 2, heightView - padding * 2,

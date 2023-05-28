@@ -1,12 +1,15 @@
 package com.example.bakalarka.objects
 
 import android.graphics.*
+import android.util.Log
 import com.example.vahy.objects.ScreenObject
+import kotlin.random.Random
 
 open class EquationObject(dragFrom : Boolean = false, dragTo : Boolean = false)
     : ScreenObject(dragFrom, dragTo)  {
     var widthBordingBox = 0
     var heightBordingBox = 0
+    var positionBeforeEarthquake = Pair(0, 0)
 
     init {
         z = 2
@@ -49,6 +52,20 @@ open class EquationObject(dragFrom : Boolean = false, dragTo : Boolean = false)
             ),
             paint
         )
+    }
+
+    fun beforeEarthquakeAnim(){
+        positionBeforeEarthquake = Pair(x, y)
+    }
+
+    fun shake(){
+        x = positionBeforeEarthquake.first + Random.nextInt(0, 5)
+        y = positionBeforeEarthquake.second + Random.nextInt(0, 5)
+    }
+
+    fun afterEarthquakeAnim(){
+        x = positionBeforeEarthquake.first
+        y = positionBeforeEarthquake.second
     }
 
     open fun makeCopy() : EquationObject {

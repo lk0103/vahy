@@ -1,6 +1,5 @@
 package com.example.vahy.equation
 
-import com.example.bakalarka.equation.Bracket
 
 class Variable(protected var variable : String) : Polynom(){
 

@@ -37,7 +37,7 @@ open class EquationObjectBox ()
     }
 
     open fun changeSizeObj() {
-        val weightSizeProportions = listOf(Pair(26, 30), Pair(28, 30), Pair(1, 1))
+        val weightSizeProportions = listOf(Pair(84, 100), Pair(92, 100), Pair(1, 1))
             .subList(3 - constantSizeRange.size, 3)
         (0 until insideObject.size).forEach { i ->
             val x = positions[i][0]
@@ -91,6 +91,18 @@ open class EquationObjectBox ()
     fun removeObject(obj : EquationObject){
         insideObject.remove(obj)
         changeSizeObj()
+    }
+
+    fun beforeEarthquakeAnim(){
+        insideObject.forEach { it.beforeEarthquakeAnim() }
+    }
+
+    fun changePosition(){
+        insideObject.forEach { it.shake() }
+    }
+
+    fun afterEarthquakeAnim(){
+        insideObject.forEach { it.afterEarthquakeAnim() }
     }
 
     fun getOverlappingScreenValue(obj : ScaleValue, original : ScaleValue) : ScaleValue? =

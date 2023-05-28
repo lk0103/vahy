@@ -1,6 +1,5 @@
 package com.example.bakalarka.equation
 
-import android.util.Log
 import com.example.vahy.equation.Addition
 
 class Equation(val left : Addition, val right : Addition) {
@@ -19,11 +18,6 @@ class Equation(val left : Addition, val right : Addition) {
     fun containsBracket() : Boolean =
         left.containsBracket()  || right.containsBracket()
 
-    fun allBracketsSame() : Boolean {
-        val brackets = (left.findAllBrackets() + right.findAllBrackets())
-            .toList()
-        return brackets.all { it == brackets[0] }
-    }
 
     fun findBracket() : Bracket? = (left.findAllBrackets() + right.findAllBrackets())
         .toList().firstOrNull()
@@ -57,10 +51,12 @@ class Equation(val left : Addition, val right : Addition) {
         else return -1
     }
 
+    fun isIncomplete() = left.toString().isEmpty() || right.toString().isEmpty()
+
+
     fun copy() : Equation {
         val copy = Equation(left.copy() as Addition, right.copy() as Addition)
         copy.setSolution(solutions)
         return copy
     }
-
 }

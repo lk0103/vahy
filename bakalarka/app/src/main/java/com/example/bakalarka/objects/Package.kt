@@ -11,7 +11,6 @@ class Package(private val context: Context, dragFrom : Boolean = false,
               dragTo : Boolean = false)
     : EquationObject(dragFrom, dragTo)  {
     var insideObject = mutableListOf<EquationObject>()
-    private var maxNumberOfVariableTypes = 1
 
     init {
         image = ContextCompat.getDrawable(context, R.drawable.package1)!!.toBitmap()
@@ -38,27 +37,6 @@ class Package(private val context: Context, dragFrom : Boolean = false,
 
     fun putObjectsIn(inside : MutableList<EquationObject>){
         insideObject = inside.toMutableList()
-    }
-
-    fun addObjectIn(obj : EquationObject){
-        if (!possibleToAddVariable(obj) ||
-            ! (obj is ScaleValue || obj is ScaleVariable))
-            throw java.lang.Exception("maximum capacity of variables in the package")
-
-        insideObject.add(obj)
-    }
-
-    fun possibleToAddVariable(obj : EquationObject) : Boolean{
-        var count = 0
-        val typeVariableClasses = listOf(Ball(context, 0), Cube(context, 0), Cylinder(context, 0))
-        typeVariableClasses.forEach { type ->
-            if (insideObject.any { it::class == type::class }) {
-                if (obj::class == type::class )
-                    return true
-                count++
-            }
-        }
-        return count < maxNumberOfVariableTypes
     }
 
     override fun returnPackages() : MutableList<Package> = mutableListOf(this)

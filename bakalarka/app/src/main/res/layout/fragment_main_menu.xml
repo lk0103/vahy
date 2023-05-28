@@ -33,8 +33,6 @@
             android:id="@+id/MainMenuView"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
             android:layout_marginBottom="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

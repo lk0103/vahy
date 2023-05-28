@@ -27,11 +27,6 @@ class Constant(protected var constant : Int) : Polynom() {
         constant--
     }
 
-    fun makeNegative(){
-        if (constant > 0)
-            constant = -constant
-    }
-
     override fun addToConstant(fromValue: Int, value: Int): Polynom? =
         if (constant == fromValue) Constant(constant + value) else null
 

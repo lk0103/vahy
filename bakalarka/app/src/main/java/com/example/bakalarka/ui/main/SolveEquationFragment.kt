@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,26 +14,25 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.bakalarka.MainActivity
 import com.example.bakalarka.R
 import com.example.bakalarka.BR.*
+import com.example.bakalarka.databinding.FragmentCreateTaskBinding
 import com.example.bakalarka.databinding.FragmentSolveEquationBinding
 import com.example.bakalarka.tasks.*
-import com.example.vahy.equation.Variable
-import kotlinx.android.synthetic.main.fragment_main_menu.*
-import kotlinx.android.synthetic.main.fragment_solve_equation.*
-import kotlin.random.Random
+import com.example.vahy.ScalesView
 
 
 class SolveEquationFragment : Fragment() {
 
-    private lateinit var binding: FragmentSolveEquationBinding
+    private var _binding: FragmentSolveEquationBinding? = null
+    private val binding get() = _binding!!
     private lateinit var viewModel: SolveEquationViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_solve_equation, container, false)
-        binding.setLifecycleOwner (this)
-        return binding.root
+        _binding = FragmentSolveEquationBinding.inflate(inflater, container, false)
+        val view = binding.root
+        return view
     }
 
     lateinit var mainactivity : MainActivity
@@ -47,23 +47,23 @@ class SolveEquationFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProvider(this).get(SolveEquationViewModel::class.java)
         binding.setVariable(myViewModel, viewModel)
-        viewModel.setMainActivity(mainactivity)
-        viewModel.switchBetweenTasks.changeBackground(backgroundViewSolve)
+
+        viewModel.setMainActivity(mainactivity, binding.ScalesView, binding.TaskSolveEquationView,
+            binding.TaskMainMenuView)
+        viewModel.switchBetweenTasks.changeBackground(binding.backgroundViewSolve)
 
         setCanvasParameters()
-        viewModel.switchBetweenTasks.setTaskMainMenu(TaskMainMenuView)
-        viewModel.generateEquation(ScalesView, TaskSolveEquationView)
+        viewModel.generateEquation()
 
-
-        TaskMainMenuView.setOnTouchListener { view, motionEvent ->
-            viewModel.onTouch(view, motionEvent, ScalesView)
+        binding.TaskMainMenuView.setOnTouchListener { view, motionEvent ->
+            viewModel.onTouch(view, motionEvent)
         }
 
-        TaskSolveEquationView.setOnTouchListener { view, motionEvent ->
-            viewModel.generateNewEq(view, motionEvent, ScalesView)
+        binding.TaskSolveEquationView.setOnTouchListener { view, motionEvent ->
+            viewModel.generateNewEq(view, motionEvent)
         }
-
     }
+
 
 
     private fun setCanvasParameters() {
@@ -72,24 +72,30 @@ class SolveEquationFragment : Fragment() {
         val height = displayMetrics.heightPixels
         val width = displayMetrics.widthPixels
         val marginTop = height / 7
-        var param = ScalesView.layoutParams as ViewGroup.MarginLayoutParams
+        var param = binding.ScalesView.layoutParams as ViewGroup.MarginLayoutParams
         param.setMargins(8, marginTop, 8, 8)
-        ScalesView.layoutParams = param
+        binding.ScalesView.layoutParams = param
 
         val heightOfMenu = height / 7
-        val widthOfMenu = width * 3 / 8 - 8 * 2
-        param = TaskMainMenuView.layoutParams as ViewGroup.MarginLayoutParams
+        val widthOfMenu = width * 10 / 24 - 8 * 2
+        param = binding.TaskMainMenuView.layoutParams as ViewGroup.MarginLayoutParams
         param.setMargins(0, 8, width - widthOfMenu, height - heightOfMenu)
-        TaskMainMenuView.layoutParams = param
-        TaskMainMenuView.layoutParams.width = widthOfMenu
-        TaskMainMenuView.layoutParams.height = heightOfMenu
+        binding.TaskMainMenuView.layoutParams = param
+        binding.TaskMainMenuView.layoutParams.width = widthOfMenu
+        binding.TaskMainMenuView.layoutParams.height = heightOfMenu
 
         val widthOfSolution = width - widthOfMenu
-        param = TaskSolveEquationView.layoutParams as ViewGroup.MarginLayoutParams
+        param = binding.TaskSolveEquationView.layoutParams as ViewGroup.MarginLayoutParams
         param.setMargins(0, 8, 0, height - heightOfMenu)
-        TaskSolveEquationView.layoutParams = param
-        TaskSolveEquationView.layoutParams.width = widthOfSolution
-        TaskSolveEquationView.layoutParams.height = heightOfMenu
+        binding.TaskSolveEquationView.layoutParams = param
+        binding.TaskSolveEquationView.layoutParams.width = widthOfSolution
+        binding.TaskSolveEquationView.layoutParams.height = heightOfMenu
+    }
+
+    override fun onPause() {
+        binding.ScalesView.cancelShownResultMessage()
+        binding.ScalesView.cancelShownNewLevelMessage()
+        super.onPause()
     }
 
 }

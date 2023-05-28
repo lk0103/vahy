@@ -2,10 +2,8 @@ package com.example.vahy.equation
 
 import com.example.bakalarka.equation.Bracket
 
-//lava strana bude variable, constant, bracked a prava strana bude nasobok
 class Multiplication(private var polynom : Polynom,
-                     private var multiple : Constant
-) : Polynom(){
+                     private var multiple : Constant) : Polynom(){
 
     override fun simplify(): Polynom? {
         if (multiple.evaluate(mutableMapOf()) == 0) return null

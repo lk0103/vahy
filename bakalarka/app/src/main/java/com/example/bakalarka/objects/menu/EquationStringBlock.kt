@@ -2,11 +2,13 @@ package com.example.bakalarka.objects.menu
 
 import android.content.Context
 import android.graphics.*
+import android.graphics.Paint.Style
+import android.util.Log
 import androidx.core.content.ContextCompat
 import com.example.bakalarka.R
 import com.example.vahy.objects.ScreenObject
 
-class EquationStringBlock(private val context: Context, private val equation : String)
+class EquationStringBlock(private val context: Context, private var equation : String)
             :ScreenObject(false, false){
     var isMarked = false
     var textSize = 0F
@@ -19,6 +21,7 @@ class EquationStringBlock(private val context: Context, private val equation : S
     }
 
     override fun draw(canvas: Canvas, paint: Paint) {
+        paint.style = Style.FILL
         paint.textSize = textSize
         textBackground(paint, canvas)
         paint.color = Color.BLACK
@@ -31,10 +34,11 @@ class EquationStringBlock(private val context: Context, private val equation : S
         paint.getTextBounds(equation, 0, equation.length, bounds)
         paint.color = Color.BLACK
         paint.strokeWidth = 0F
+        val text = Math.max(bounds.height(), height / 4)
         roundedRectangle(
-            canvas, paint, x - bounds.width() * 7F / 12 - 3,
-            y - bounds.height() - 3F - 10,
-            x + bounds.width() * 7F / 12 + 3, y + bounds.height() / 2F + 3
+            canvas, paint, x - bounds.width() * 13F / 24 - 8,
+            y - text - 3F - 10 - 3,
+            x + bounds.width() * 13F / 24 + 8, y + text / 2F + 3 + 3
         )
         if (isMarked)
             paint.color = ContextCompat.getColor(context, R.color.equationStringBg)
@@ -43,8 +47,8 @@ class EquationStringBlock(private val context: Context, private val equation : S
 
         paint.strokeWidth = 0F
         roundedRectangle(
-            canvas, paint, x - bounds.width() * 7F / 12, y - bounds.height() - 10F,
-            x + bounds.width() * 7F / 12, y + bounds.height() / 2F
+            canvas, paint, x - bounds.width() * 13F / 24 - 5, y - text - 10F - 3,
+            x + bounds.width() * 13F / 24 + 5, y + text / 2F + 3
         )
     }
 
@@ -56,4 +60,8 @@ class EquationStringBlock(private val context: Context, private val equation : S
     override fun isIn(x1 : Int, y1: Int) : Boolean =
         (x1 >= x - width / 2 && x1 <= x + width / 2 &&
                 y1 >= y - height / 2 && y1 <= y + height / 2)
+
+    fun changeEquation(eq : String){
+        equation = if (eq == "=") " = " else eq
+    }
 }

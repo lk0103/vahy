@@ -11,7 +11,8 @@ class ReplayIcon(context: Context)
     : Icon(context) {
 
     init {
-        image = ContextCompat.getDrawable(context, R.drawable.replay)!!.toBitmap()
+        imageType = R.drawable.redo
+        image = ContextCompat.getDrawable(context, imageType)!!.toBitmap()
         width = 300
         height = 300
         image = Bitmap.createScaledBitmap(image!!, width, height, true)

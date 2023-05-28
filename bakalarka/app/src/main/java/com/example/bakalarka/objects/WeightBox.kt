@@ -4,8 +4,8 @@ class WeightBox: EquationObjectBox() {
 
     init {
         maxNumberOfObj = 8
-        cols = 1.4
-        rows = 2.4
+        cols = 1.3
+        rows = 2.2
     }
 
     override fun calculatePositions() {

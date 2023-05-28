@@ -1,6 +1,5 @@
 package com.example.bakalarka.tasks
 
-import android.util.Log
 import com.example.vahy.equation.Addition
 import com.example.vahy.equation.Constant
 import kotlin.random.Random
@@ -38,6 +37,10 @@ open class Generator {
                 !enableConsLeft && !enableConsRight)
                 rightConfig = false
         }
+
+        if ((enableConsLeft && consLeft.isEmpty()) ||
+            (enableConsRight && consRight.isEmpty()))
+            rightConfig = false
         return Triple(consLeft, consRight, rightConfig)
     }
 
@@ -73,8 +76,7 @@ open class Generator {
                             Random.nextInt(Math.min(sumCons, minNumCons),
                                             Math.min(sumCons, maxNumCons + 1))
 
-        val consBorders = divideConstant(numCons, sumCons)
-        return consBorders
+        return divideConstant(numCons, sumCons)
     }
 
     protected fun divideConstant(numCons: Int, sumCons: Int): MutableList<Int> {

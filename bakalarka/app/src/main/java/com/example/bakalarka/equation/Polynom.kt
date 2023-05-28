@@ -19,9 +19,7 @@ abstract class Polynom {
 
     fun findAllBrackets() : Set<Bracket> = countNumBrackets().keys.toSet()
 
-    open fun setAllBracketInsides(bracketInside : Addition){
-
-    }
+    open fun setAllBracketInsides(bracketInside : Addition){}
 
     open fun removeVariable(name: String) : Polynom? = null
 

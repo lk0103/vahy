@@ -26,7 +26,6 @@ open class ScaleValue(protected var value : Int,
     }
 
     open fun drawValue(paint: Paint, canvas: Canvas) {
-
     }
 
     override fun evaluate() : Int = value

@@ -4,14 +4,14 @@ import android.graphics.Color
 import kotlin.random.Random
 
 class ConfettiGenerator {
-    fun generateConfetti(width : Int): MutableList<ConfettiParticle> {
+    fun generateConfetti(xStart : Int, width : Int): MutableList<ConfettiParticle> {
         val colors = listOf(Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.MAGENTA)
-        val particleCount = 250
+        val particleCount = 200
         val particleAngleRange = 60..120
 
         val particles = mutableListOf<ConfettiParticle>()
         repeat(particleCount) {
-            val x = (0..width).random().toFloat()
+            val x = (0..width).random().toFloat() + xStart
             val y = (-100..-50).random().toFloat()
             val particleSizeX = Random.nextFloat() * 2f + 6f
             val particleSizeY = Random.nextFloat() * 15 + 30f

@@ -20,14 +20,15 @@ import com.example.bakalarka.equation.Bracket
 import com.example.bakalarka.equation.Equation
 import com.example.bakalarka.equation.SystemOfEquations
 import com.example.bakalarka.objects.*
+import com.example.bakalarka.objects.Ballon
 import com.example.bakalarka.objects.menu.ConfettiGenerator
 import com.example.bakalarka.objects.menu.ConfettiParticle
 import com.example.bakalarka.objects.menu.FailSuccessIcon
 import com.example.bakalarka.objects.menu.LevelNumber
+import com.example.bakalarka.tasks.NUM_LEVELS
 import com.example.vahy.equation.Addition
 import com.example.vahy.equation.Constant
 import com.example.vahy.objects.*
-import kotlinx.android.synthetic.main.fragment_main.view.*
 import java.lang.Exception
 
 
@@ -40,9 +41,11 @@ class ScalesView(context: Context, attrs: AttributeSet)
     private var draggedFrom : ContainerForEquationBoxes? = null
     private var clickedObject : EquationObject? = null
     private var maxNumberOfVariableTypes = 1
+
     private var isBuildEquationTask = false
     var isSystemOf2Eq = false
-    var hasPackage = false
+    var isCreateTask = false
+    private var hasPackage = false
     var hasBalloon = false
     var isRotating = false
     var showNewLevelMessage = -1
@@ -50,7 +53,7 @@ class ScalesView(context: Context, attrs: AttributeSet)
     private var equationSystem = SystemOfEquations(mutableListOf())
     private var previousEqSys = mutableListOf<Pair<SystemOfEquations, Bracket>>()
     private var equation = Equation(Addition(mutableListOf()), Addition(mutableListOf()))
-    private var solutionBuild = mutableMapOf<String, Int>()
+    var solutionBuild = mutableMapOf<String, Int>()
     private var screenVariableToStringVar = mutableMapOf<String, String>(
         Ball(context, 1)::class.toString() to "x",
         Cube(context, 1)::class.toString() to "y",
@@ -58,6 +61,7 @@ class ScalesView(context: Context, attrs: AttributeSet)
     )
 
     var screenTouchDisabled = false
+
     private val bin = Bin(context)
     private var objectsToChooseFrom = ObjectsToChooseFrom(mutableListOf(
                         Ball(context, 1), Cube(context, 1),
@@ -71,8 +75,10 @@ class ScalesView(context: Context, attrs: AttributeSet)
     private var heightView = 0
     private var padding = 0
 
-    private var messageTimer : CountDownTimer? = null
+    private var messageResult : CountDownTimer? = null
+    private var messageNewLevel : CountDownTimer? = null
     private var confettiAnimator : ValueAnimator? = null
+    private var animationDuration: Long = 1300
 
     private val paint = Paint()
     private var gDetector: GestureDetectorCompat? = null
@@ -88,141 +94,17 @@ class ScalesView(context: Context, attrs: AttributeSet)
         screenObjects.add(openPackage)
     }
 
-    fun setBuildEquationTask(isBuild : Boolean, sysEq: SystemOfEquations){
-        isBuildEquationTask = isBuild
-        hasPackage = sysEq.containsBracket()
-        solutionBuild = sysEq.solutions
-
-        screenObjects.filter { it is Scale }.forEach { (it as Scale).buildEquationTask = isBuild }
-
-        setTouchabilityOfOpenPackage(true)
-        setVisibilityOfObjs()
-        changeLayout()
-
-        equationSystem = sysEq
-        equation = sysEq.equations[0]
-        createMappingForScreenVariablesForNewEq()
-        Log.i("generate", "screenvariabletostr: " + screenVariableToStringVar +
-        " solutions: " + equationSystem.solutions)
-        equationSystem = SystemOfEquations(mutableListOf())
-
-//
-//        setObjectsToChooseFrom(objectsToChooseFrom.getInsideObjects()
-//            .filter { it !is ScaleVariable ||
-//                    screenVariableToStringVar.keys.contains(it::class.toString()) }
-//            .toMutableList())
-
-        setEquation(SystemOfEquations(mutableListOf()), 0, screenVariableToStringVar)
-    }
-
-    fun setSystem2EqTask(isSystem : Boolean){
-        if (isSystem && !isSystemOf2Eq) {
-            isSystemOf2Eq = true
-            val scaleIcon = Scale(context, false, false)
-            scaleIcon.isIcon = true
-            scaleIcon.changeLayout(false)
-            screenObjects.add(scaleIcon)
-            return
-        }
+    fun defaultScale(){
+        isBuildEquationTask = false
+        isSystemOf2Eq = false
+        hasPackage = false
+        hasBalloon = false
+        isRotating = false
+        solutionBuild = mutableMapOf()
         screenObjects.removeAll( screenObjects.filter { it is Scale && it.isIcon } )
+        defaultEquations()
+        setTouchabilityOfOpenPackage(false, false)
     }
-
-    @JvmName("setHasBallon1")
-    fun setHasBalloon(has : Boolean){
-        hasBalloon = has
-    }
-
-    fun setTouchabilityOfOpenPackage(touchable : Boolean){
-        screenObjects.filter { it is OpenPackage }.forEach {
-                it.dragFrom = touchable
-                it.dragTo = touchable
-            }
-    }
-
-    fun setObjectsToChooseFrom(objects : MutableList<EquationObject>){
-        screenObjects.filter { it is ObjectsToChooseFrom }
-            .forEach { (it as ObjectsToChooseFrom).setInsideObject(objects) }
-        invalidate()
-    }
-
-    fun setVisibilityOfObjs(){
-        setVisibilityObjToChooseFrom()
-        setVisibilityOpenPackage()
-
-        changeLayout()
-        invalidate()
-    }
-
-    private fun changeLayout() {
-        screenObjects.filter { it is Scale }
-            .forEach { (it as Scale).changeLayout(hasPackage) }
-
-        if (widthView > 0 && heightView > 0) changeSizeScreenObjects()
-    }
-
-    private fun setVisibilityObjToChooseFrom() {
-        screenObjects.filter { it is ObjectsToChooseFrom }
-            .forEach { it.visibility = (hasPackage || isBuildEquationTask || isSystemOf2Eq) }
-    }
-
-    private fun setVisibilityOpenPackage() {
-        screenObjects.filter { it is OpenPackage }
-            .forEach { it.visibility = hasPackage }
-    }
-
-    fun setEquation(sysOfEq : SystemOfEquations, indexEq : Int,
-                    varScreenTypes : MutableMap<String, String>? = null,
-                    bracket : Bracket? = null) : Boolean{
-        if (varScreenTypes == null) defaultEquations()
-        if (! sysOfEq.allBracketsSame() || indexEq >= sysOfEq.equations.size || indexEq < 0 ) {
-            loadEquation()
-            return false
-        }
-        equation = sysOfEq.equations[indexEq]
-        equationSystem = sysOfEq
-        if (isBuildEquationTask && !sysOfEq.hasSolution()){
-            equationSystem.setSolutions(solutionBuild)
-        }
-
-        if (!isBuildEquationTask && varScreenTypes == null) {
-            createMappingForScreenVariablesForNewEq()
-        }
-
-        setVisibilityOfObjs()
-        try {
-            changeEquation(bracket)
-        }catch (e : java.lang.Exception){
-            defaultEquations()
-            loadEquation()
-            return false
-        }
-
-        if (previousEqSys.isEmpty())
-            storeEquation()
-
-        invalidate()
-        return true
-    }
-
-    private fun changeEquation(bracket: Bracket?) {
-        loadEquation(bracket)
-        if (isSystemOf2Eq) {
-            loadEquationScaleIcon()
-            if (!isBuildEquationTask)
-                changeObjChooseFromSystem2Eq()
-        }
-        if (!isBuildEquationTask && hasPackage)
-            changeObjChooseFromOpenPackage()
-
-        checkEquality()
-        if (isSystemOf2Eq){
-            screenObjects.filter { it is Scale }.forEach {
-                (it as Scale).changeSizeBoxesInHolders(getMaxNumBoxes()) }
-        }
-    }
-
-    fun getMaxNumBoxes() = screenObjects.filter { it is Scale }
-        .map { (it as Scale).getMaxNumberBoxes() }.max()
 
     private fun defaultEquations() {
         equation = Equation(Addition(mutableListOf()), Addition(mutableListOf()))
@@ -255,6 +137,150 @@ class ScalesView(context: Context, attrs: AttributeSet)
         changeObjChooseFromDefault()
     }
 
+    fun setBuildEquationTask(isBuild : Boolean, sysEq: SystemOfEquations,
+                             mappingVarToString : MutableMap<String, String>? = null){
+        isBuildEquationTask = isBuild
+        hasPackage = sysEq.containsBracket()
+        solutionBuild = sysEq.solutions
+
+        screenObjects.filter { it is Scale }.forEach { (it as Scale).buildEquationTask = isBuild }
+
+        setTouchabilityOfOpenPackage(true, true)
+        setVisibilityOfObjs()
+        changeLayout()
+
+        equationSystem = sysEq
+        equation = sysEq.equations[0]
+
+        if (mappingVarToString != null)
+            screenVariableToStringVar = mappingVarToString.toMutableMap()
+        else
+            createMappingForScreenVariablesForNewEq()
+
+        equationSystem = SystemOfEquations(mutableListOf())
+
+        setEquation(SystemOfEquations(mutableListOf()), 0, screenVariableToStringVar)
+    }
+
+    fun setSystem2EqTask(isSystem : Boolean){
+        if (isSystem && !isSystemOf2Eq) {
+            isSystemOf2Eq = true
+            val scaleIcon = Scale(context, false, false)
+            scaleIcon.isIcon = true
+            scaleIcon.changeLayout(false)
+            screenObjects.add(scaleIcon)
+            return
+        }
+        else if (!isSystem && isSystemOf2Eq)
+            screenObjects.removeAll( screenObjects.filter { it is Scale && it.isIcon } )
+    }
+
+    fun setHasPackage(has : Boolean){
+        hasPackage = has
+        setTouchabilityOfOpenPackage(true, false)
+    }
+
+    @JvmName("setHasBallon1")
+    fun setHasBalloon(has : Boolean){
+        hasBalloon = has
+    }
+
+    fun setTouchabilityOfOpenPackage(from : Boolean, to : Boolean){
+        screenObjects.filter { it is OpenPackage }.forEach {
+                it.dragFrom = from
+                it.dragTo = to
+            }
+    }
+
+    fun setObjectsToChooseFrom(objects : MutableList<EquationObject>){
+        screenObjects.filter { it is ObjectsToChooseFrom }
+            .forEach { (it as ObjectsToChooseFrom).setInsideObject(objects) }
+        invalidate()
+    }
+
+    fun setVisibilityOfObjs(){
+        setVisibilityObjToChooseFrom()
+        setVisibilityOpenPackage()
+
+        changeLayout()
+        invalidate()
+    }
+
+    private fun changeLayout() {
+        screenObjects.filter { it is Scale }
+            .forEach { (it as Scale).changeLayout(hasPackage) }
+
+        if (widthView > 0 && heightView > 0) changeSizeScreenObjects()
+    }
+
+    private fun setVisibilityObjToChooseFrom() {
+        screenObjects.filter { it is ObjectsToChooseFrom }
+            .forEach { it.visibility = (isBuildEquationTask || isSystemOf2Eq) }
+    }
+
+    private fun setVisibilityOpenPackage() {
+        screenObjects.filter { it is OpenPackage }
+            .forEach { it.visibility = hasPackage }
+    }
+
+    fun setEquation(sysOfEq : SystemOfEquations, indexEq : Int,
+                    varScreenTypes : MutableMap<String, String>? = null,
+                    bracket : Bracket? = null) : Boolean{
+        if (varScreenTypes == null) defaultEquations()
+        if (! sysOfEq.allBracketsSame() || indexEq >= sysOfEq.equations.size || indexEq < 0 ) {
+            loadEquation()
+            return false
+        }
+        equation = sysOfEq.equations[indexEq]
+        equationSystem = sysOfEq
+        if (isBuildEquationTask && !sysOfEq.hasValidSolution()){
+            equationSystem.setSolutions(solutionBuild)
+        }
+
+        if (!isBuildEquationTask && varScreenTypes == null) {
+            createMappingForScreenVariablesForNewEq()
+        }
+
+        //added for editors
+        if (varScreenTypes != null){
+            screenVariableToStringVar = varScreenTypes
+        }
+
+        setVisibilityOfObjs()
+        try {
+            changeEquation(bracket)
+        }catch (e : java.lang.Exception){
+            defaultEquations()
+            loadEquation()
+            return false
+        }
+
+        if (previousEqSys.isEmpty())
+            storeEquation()
+
+        invalidate()
+        return true
+    }
+
+    private fun changeEquation(bracket: Bracket?) {
+        loadEquation(bracket)
+        if (isSystemOf2Eq) {
+            loadEquationScaleIcon()
+            if (!isBuildEquationTask)
+                changeObjChooseFromSystem2Eq()
+        }
+
+        checkEquality()
+        if (isSystemOf2Eq){
+            screenObjects.filter { it is Scale }.forEach {
+                (it as Scale).changeSizeBoxesInHolders(getMaxNumBoxes()) }
+        }
+    }
+
+    fun getMaxNumBoxes() = screenObjects.filter { it is Scale }
+        .map { (it as Scale).getMaxNumberBoxes() }.max()
+
+
     private fun changeObjChooseFromDefault() {
         setObjectsToChooseFrom(objectsToChooseFrom.getInsideObjects()
             .filter {
@@ -265,16 +291,6 @@ class ScalesView(context: Context, attrs: AttributeSet)
             .toMutableList())
     }
 
-    private fun changeObjChooseFromOpenPackage() {
-        if (screenObjects.filter { it is ObjectsToChooseFrom }.all { !it.visibility }
-            || previousEqSys.size > 1)
-            return
-
-        setObjectsToChooseFrom(objectsToChooseFrom.getInsideObjects()
-            .filter { eqObj -> !hasPackage || openPackage.getInsideObjects().any { packageObj ->
-            eqObj::class == packageObj::class } }
-            .filter { eqObj -> hasBalloon || eqObj !is Ballon }.toMutableList())
-    }
 
     private fun changeObjChooseFromSystem2Eq() {
         if (screenObjects.filter { it is ObjectsToChooseFrom }.all { !it.visibility }
@@ -344,23 +360,12 @@ class ScalesView(context: Context, attrs: AttributeSet)
             switchBetweenEquations()
     }
 
-//    fun restoreOriginalEquation(){
-//        if (previousEqSys.isEmpty())
-//            return
-//        val (previous, bracket) = previousEqSys[0]
-//        setEquation(previous, equationSystem.equations.indexOf(equation),
-//            screenVariableToStringVar, bracket)
-//        previousEqSys = mutableListOf()
-//        Log.i("storeprev", "restore original " + previousEqSys)
-//    }
-
     fun previousEquation(){
         if (previousEqSys.isEmpty())
             return
         val (previous, bracket) = previousEqSys.removeLast()
         setEquation(previous, getIndexEquation(),
             screenVariableToStringVar, bracket)
-        Log.i("storeprev", "previous eq " + previousEqSys)
     }
 
     private fun storeEquation(){
@@ -368,14 +373,12 @@ class ScalesView(context: Context, attrs: AttributeSet)
         val bracket = if (additionOfBrackets.addends.isEmpty()) Bracket(Addition(mutableListOf()))
                     else additionOfBrackets.addends[0].copy() as Bracket
         previousEqSys.add(Pair(equationSystem.copy(), bracket))
-        Log.i("storeprev", "store " + previousEqSys)
     }
 
     private fun removeLastStoredEquation(){
         if (previousEqSys.isEmpty())
             return
         previousEqSys.removeLast()
-        Log.i("storeprev", "remove last " + previousEqSys)
     }
 
     fun getSolutions() : Map<String, Int> {
@@ -404,8 +407,7 @@ class ScalesView(context: Context, attrs: AttributeSet)
                     screenObjects.filter { it is ObjectsToChooseFrom }.all { it.visibility },
                     screenObjects.filter { it is OpenPackage }.all { it.visibility })
             } else if (obj is OpenPackage) {
-                obj.changeSizeInScaleView(widthView, heightView, padding,
-                    screenObjects.filter { it is ObjectsToChooseFrom }.all { it.visibility })
+                obj.changeSizeInScaleView(widthView, heightView, padding)
             } else if (obj is ObjectsToChooseFrom) {
                 obj.changeSizeInScaleView(widthView, heightView, padding,
                     screenObjects.filter { it is OpenPackage }.all { it.visibility })
@@ -420,7 +422,10 @@ class ScalesView(context: Context, attrs: AttributeSet)
         if (event == null) return true
 
         if (screenTouchDisabled) {
-            cancelShownMessage()
+            if (messageResult != null)
+                cancelShownResultMessage()
+            else if (messageNewLevel != null)
+                cancelNewLevelMessage()
             return false
         }
 
@@ -452,24 +457,21 @@ class ScalesView(context: Context, attrs: AttributeSet)
     }
 
     private fun onTouchDown(event: MotionEvent) {
+        if (draggedObject != null) return
+
         if (screenObjects.filter { it is Scale && it.isIcon }
                 .any { it.isIn(event.x.toInt(), event.y.toInt()) }){
             switchBetweenEquations()
             return
         }
-        for (obj in containersToDragFrom()) {
-            draggedObject = obj.returnDraggedObject(event.x.toInt(), event.y.toInt())
+        for (container in containersToDragFrom()) {
+            draggedObject = container.returnDraggedObject(event.x.toInt(), event.y.toInt())
             if (draggedObject != null) {
                 draggedObjOriginalPos = Pair(draggedObject?.x ?: 0, draggedObject?.y ?: 0)
-                if (obj is ContainerForEquationBoxes)
-                    draggedFrom = obj
+                if (container is ContainerForEquationBoxes)
+                    draggedFrom = container
                 break
             }
-        }
-
-        if (draggedObject is Package){
-            Log.i("generate", "package inside: " +
-                    (draggedObject as com.example.bakalarka.objects.Package).insideObject.toString())
         }
     }
 
@@ -489,7 +491,6 @@ class ScalesView(context: Context, attrs: AttributeSet)
         checkEquality()
         draggedObject = null
         draggedFrom = null
-        Log.i("build", "rovnica: " + equationSystem)
         this.invalidate()
     }
 
@@ -522,6 +523,8 @@ class ScalesView(context: Context, attrs: AttributeSet)
             containersToManipulate().forEach{ container ->
                 if (container.isIn(obj)){
                     dropObjIntoContainer(obj, container)
+                    if (container is OpenPackage || draggedFrom is OpenPackage)
+                        changeInsideOfPackages()
                     invalidate()
                     return true
                 }
@@ -531,23 +534,17 @@ class ScalesView(context: Context, attrs: AttributeSet)
         return false
     }
 
-    private fun dropObjIntoContainer(obj: EquationObject, container : ContainerForEquationBoxes) {
-        if (container != draggedFrom && container is HolderOfWeights
-            && draggedFrom is HolderOfWeights && obj is ScaleValue){
-            if (container.substractValueFromOtherValueIDifferentHolder(
-                    draggedFrom as ContainerForEquationBoxes, obj, equationSystem)) {
-                return
-            }
-        }
-        if (container == draggedFrom && containersToManipulate().contains(draggedFrom)
+    private fun dropObjIntoContainer(obj: EquationObject, draggedTo : ContainerForEquationBoxes) {
+        if (draggedTo == draggedFrom && containersToManipulate().contains(draggedFrom)
             && obj is ScaleValue){
-            if (container.addValueToOtherValueInTheSameHolder(obj, equationSystem)){
+            if (draggedTo.addValueToOtherValueInTheSameHolder(obj, equationSystem)){
                 return
             }
             plusMinus1ToDragged(obj)
             return
         }
-        if ((obj is Package && container is OpenPackage)) {
+
+        if ((obj is Package && draggedTo is OpenPackage)) {
             removeDraggedObjFromContainer(draggedFrom, false)
             return
         }
@@ -556,10 +553,8 @@ class ScalesView(context: Context, attrs: AttributeSet)
             val equationsWithOpenPackage = equationSystem.equations +
                     Equation(openPackage.getBracket(), openPackage.getBracket())
             val eqSys = SystemOfEquations(equationsWithOpenPackage)
-            container.putEquationObjIntoHolder(obj, eqSys)
+            draggedTo.putEquationObjIntoHolder(obj, eqSys)
             removeDraggedObjFromContainer(draggedFrom, true)
-            if (container is OpenPackage)
-                changeInsideOfPackages()
         }catch (e : java.lang.Exception){
             removeDraggedObjFromContainer(draggedFrom, false)
         }
@@ -569,6 +564,10 @@ class ScalesView(context: Context, attrs: AttributeSet)
         val container = containersToDragFrom().filter {
             it.isIn(draggedObjOriginalPos.first, draggedObjOriginalPos.second)
         }.firstOrNull()
+
+        if (container is OpenPackage && !containersToManipulate().contains(container))
+            return false
+
         if (bins().any { it.isIn(obj) } && container is ContainerForEquationBoxes)
             return true
         if (draggedObjOriginalPos == Pair(0, 0) || container == null)
@@ -582,6 +581,10 @@ class ScalesView(context: Context, attrs: AttributeSet)
             if (obj is Weight && obj.evaluate() <= 1)
                 removeDraggedObjFromContainer(draggedFrom, true)
         }
+
+        if (container is OpenPackage)
+            changeInsideOfPackages()
+
         return container !is ObjectsToChooseFrom
     }
 
@@ -590,14 +593,14 @@ class ScalesView(context: Context, attrs: AttributeSet)
             .forEach { it.putObjectsIn(openPackage.getInsideObjects().toMutableList()) }
 
         equationSystem.setAllBracketInsides(openPackage.polynom)
-        Log.i("build", "openPackage: " + openPackage.polynom)
     }
 
-    fun removeDraggedObjFromContainer(holder : ContainerForEquationBoxes?, delete: Boolean = false){
-        if (holder == null)
+    fun removeDraggedObjFromContainer(container : ContainerForEquationBoxes?, delete: Boolean = false){
+        if (container == null)
             return
-        holder.removeDraggedObject(equationSystem, delete)
-        if (delete && holder is OpenPackage)
+
+        container.removeDraggedObject(equationSystem, delete && containersToManipulate().contains(container))
+        if (delete && container is OpenPackage)
             changeInsideOfPackages()
     }
 
@@ -638,6 +641,10 @@ class ScalesView(context: Context, attrs: AttributeSet)
                 ||
                 Math.abs(draggedObject!!.y - draggedObjOriginalPos.second) > draggedObject!!.height / 2)
 
+    fun earthquakeAnimation(){
+        Log.i("earthquake", "scales: " + getScales())
+        getScales().forEach { it.earthquakeAnimation(this) }
+    }
 
     fun failSuccessShow(success : Boolean){
         screenTouchDisabled = true
@@ -648,22 +655,25 @@ class ScalesView(context: Context, attrs: AttributeSet)
 
         if (success)
             startConfettiAnimation()
+        else
+            getScales().forEach { it.earthquakeAnimation(this) }
 
-        messageTimer = object : CountDownTimer(2000, 2000){
+        messageResult = object : CountDownTimer(animationDuration, animationDuration){
             override fun onTick(p0: Long) {
             }
 
             override fun onFinish() {
-                cancelMessage()
+                cancelResultMessage()
             }
         }.start()
     }
 
     private fun startConfettiAnimation() {
-        Log.i("confetti", "start confetti")
-        particles = ConfettiGenerator().generateConfetti(widthView)
+        val widthWithConfetti = widthView / 15
+        particles = ConfettiGenerator().generateConfetti(widthWithConfetti / 2,
+                                                    widthView - widthWithConfetti)
         confettiAnimator = ValueAnimator.ofInt(0, particles.size - 1)
-        confettiAnimator?.duration = 2000L
+        confettiAnimator?.duration = animationDuration
         confettiAnimator?.interpolator = LinearInterpolator()
         confettiAnimator?.addUpdateListener {
             invalidate()
@@ -675,70 +685,100 @@ class ScalesView(context: Context, attrs: AttributeSet)
     }
 
     fun unlockedLevel(){
-
+        if (showNewLevelMessage < 1 || showNewLevelMessage > NUM_LEVELS)
+            return
         screenTouchDisabled = true
         val icon = LevelNumber(context, showNewLevelMessage)
-        showNewLevelMessage = -1
 
+        icon.showLock(true, 0)
         icon.changeSizeInScaleView(widthView, heightView)
         screenObjects.add(icon)
         invalidate()
 
-        val time = 2500L
-        messageTimer = object : CountDownTimer(time, time / 2000){
+        val distance = heightView / 3  + heightView / 5
+        val oneStep = distance / 50F
+        val interval = 20L
+        val time = (distance / oneStep) * interval * 2
+        messageNewLevel = object : CountDownTimer(time.toLong(), interval){
             override fun onTick(p0: Long) {
                 if (p0 > time - time / 2 ) {
-                    icon.y += (heightView / 2 + heightView / 3) / 65
+                    icon.move(icon.x, icon.y + oneStep.toInt())
+                    if (p0 < time - time / 4 ) {
+                        icon.showLock(true, 1)
+                    }
                     invalidate()
                     return
                 }
 
                 icon.setLocked(false)
+                icon.showLock(true, 2)
                 invalidate()
             }
 
             override fun onFinish() {
-                cancelMessage()
+                cancelNewLevelMessage()
             }
         }.start()
+
+        showNewLevelMessage = -1
     }
 
-    fun cancelShownMessage(){
-        if (messageTimer == null)
+    fun cancelShownResultMessage(){
+        if (messageResult == null)
             return
-        messageTimer?.cancel()
-        cancelMessage()
+        messageResult?.cancel()
+        cancelResultMessage()
     }
 
-    private fun cancelMessage() {
-        screenObjects.filter { it is FailSuccessIcon || it is LevelNumber}.forEach { icon ->
+    private fun cancelResultMessage() {
+        screenObjects.filter { it is FailSuccessIcon}.forEach { icon ->
             screenObjects.remove(icon)
         }
         screenTouchDisabled = false
         invalidate()
-        messageTimer = null
+        messageResult = null
 
         confettiAnimator?.cancel()
         confettiAnimator = null
         particles = listOf()
     }
 
+    fun cancelShownNewLevelMessage(){
+        if (messageNewLevel == null)
+            return
+        messageNewLevel?.cancel()
+        cancelNewLevelMessage()
+    }
+
+    private fun cancelNewLevelMessage() {
+        screenObjects.filter {it is LevelNumber}.forEach { icon ->
+            screenObjects.remove(icon)
+        }
+        screenTouchDisabled = false
+        invalidate()
+        messageNewLevel = null
+    }
+
     override fun onDoubleTap(event: MotionEvent?): Boolean {
         if (event == null) return true
 
-        for (obj in containersToDragFrom()) {
-            clickedObject = obj.returnClickedObject(event.x.toInt(), event.y.toInt())
-            if (clickedObject is Package && obj is ContainerForEquationBoxes){
+        for (container in containersToManipulate()) {
+            clickedObject = container.returnClickedObject(event.x.toInt(), event.y.toInt())
+            if (clickedObject is Package){
                 storeEquation()
-                unpackPackage(obj)
+                unpackPackage(container)
                 break
             }
-            if (clickedObject is ScaleValue && obj is ContainerForEquationBoxes){
+            if (clickedObject is ScaleValue){
                 storeEquation()
-                divideScaleValue(obj)
+                divideScaleValue(container)
+
+                if (container is OpenPackage)
+                    changeInsideOfPackages()
                 break
             }
         }
+
         invalidate()
         return true
     }
@@ -825,12 +865,25 @@ class ScalesView(context: Context, attrs: AttributeSet)
         screenObjects.filter { it is Scale && it.isIcon }
             .flatMap { (it as Scale).containersToManipulate() }
 
+    private fun getScales() : List<Scale> =
+        screenObjects.filter { it is Scale && !it.isIcon }
+            .map { it as Scale }.toList()
+
     fun getScaleVariables() : List<ScaleVariable> =
         listOf(Ball(context, 1), Cube(context, 1), Cylinder(context, 1))
             .filter { screenVariableToStringVar.keys.contains(it::class.toString()) }
 
 
+    fun hasSolution(): Boolean{
+        equationSystem.solve()
+        return equationSystem.hasValidSolution()
+    }
 
+    fun sizeStoredPreviousEquations() = previousEqSys.size
+
+    fun getSystemOfEquations() = equationSystem.copy()
+
+    fun getScreenVarToStringObj() = screenVariableToStringVar
 
     override fun onLongPress(event: MotionEvent?) {}
 

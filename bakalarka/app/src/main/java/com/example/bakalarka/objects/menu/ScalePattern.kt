@@ -9,7 +9,8 @@ import com.example.bakalarka.R
 class ScalePattern(context: Context) : Icon(context) {
 
     init {
-        image = ContextCompat.getDrawable(context, R.drawable.blue_pattern)!!.toBitmap()
+        imageType = R.drawable.blue_pattern
+        image = ContextCompat.getDrawable(context, imageType)!!.toBitmap()
         width = 300
         height = 182
         image = Bitmap.createScaledBitmap(image!!, width, height, true)

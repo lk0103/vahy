@@ -7,7 +7,7 @@
     <data>
         <variable
             name = "myViewModel"
-            type = "com.example.bakalarka.ui.main.BuildScaleFromEqViewModel" />
+            type = "com.example.bakalarka.ui.main.BuildScaleViewModel" />
     </data>
 
 
@@ -29,7 +29,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.0" />
 
-        <com.example.bakalarka.ui.main.BuildScaleFromEqView
+        <com.example.bakalarka.ui.main.BuildScaleMenuView
             android:id="@+id/BuildScaleView"
             android:layout_width="300dp"
             android:layout_height="84dp"
@@ -44,7 +44,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.0" />
 
-        <com.example.bakalarka.ui.main.TaskMainMenuView
+        <com.example.bakalarka.ui.main.TaskMenuView
             android:id="@+id/TaskMainMenuView"
             android:layout_width="430dp"
             android:layout_height="84dp"

@@ -4,11 +4,13 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.view.MotionEvent
 import androidx.lifecycle.ViewModel
+import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import com.example.bakalarka.MainActivity
 import com.example.bakalarka.R
 import com.example.bakalarka.objects.menu.RestartIcon
 import com.example.bakalarka.tasks.*
+
 
 class MainMenuViewModel : ViewModel() {
     lateinit var mainActivity: MainActivity
@@ -16,27 +18,50 @@ class MainMenuViewModel : ViewModel() {
     lateinit var prefsLevel : SharedPreferences
     lateinit var prefsTaskInLevel: SharedPreferences
     lateinit var prefsLastUnlockedLevel: SharedPreferences
+    lateinit var backgroundView: BackgroundView
     var lastUnlockedLevel = 1
 
-    fun initialize(mainMenuView: MainMenuView){
-        context = mainActivity.applicationContext
-        prefsLevel = context.getSharedPreferences("level", Context.MODE_PRIVATE)
-        prefsTaskInLevel =  getSharedPreferences("taskInLevel")
 
-        prefsLastUnlockedLevel =  getSharedPreferences("lastUnlockedLevel")
-        lastUnlockedLevel = prefsLastUnlockedLevel.getInt("lastUnlockedLevel", 1)
-        mainMenuView.changeLockedLevels(lastUnlockedLevel)
+    fun initialize(mainMenuView: MainMenuView, bg : BackgroundView){
+        context = mainActivity.applicationContext
+        prefsLevel = context.getSharedPreferences(prefsNameLevel, Context.MODE_PRIVATE)
+        prefsTaskInLevel =  getSharedPreferences(prefsNameTaskInLevel)
+
+        prefsLastUnlockedLevel =  getSharedPreferences(prefsNameLastUnlocked)
+        lastUnlockedLevel = prefsLastUnlockedLevel.getInt(prefsNameLastUnlocked, 1)
+        mainMenuView.changeLockedLevels(lastUnlockedLevel, getListFinishedLevels())
+        backgroundView = bg
+    }
+
+    fun switchBackground(){
+        val switch = SwitchingBetweenTasks()
+        switch.mainActivity = mainActivity
+        switch.changeBackground(backgroundView, lastUnlockedLevel)
+    }
+
+
+    fun getListFinishedLevels() : MutableList<Int>{
+        val finished = mutableListOf<Int>()
+        (1 .. NUM_LEVELS).forEach { level ->
+            val prefsContinueOnTaskInChosenLevel = getSharedPreferences(prefsNameTaskInLevel + level)
+            val continueOnTask = prefsContinueOnTaskInChosenLevel.getInt(prefsNameTaskInLevel + level, 0)
+            if (getLevel(level).isFinished(continueOnTask))
+                finished.add(level)
+        }
+        return finished
     }
 
     fun onTouch(mainMenu : MainMenuView, motionEvent : MotionEvent) : Boolean{
+        val createTaskLevel = mainMenu.clickCreateTaskIcon(motionEvent)
+        if (createTaskLevel > 0 && createTaskLevel <= lastUnlockedLevel){
+            val continueOnTask = storeTargetLevelAndTask(createTaskLevel)
+            switchToChosenCreateTaskLevel(createTaskLevel, continueOnTask, mainMenu)
+            return true
+        }
+
         val level = mainMenu.clickLevel(motionEvent)
         if (level > lastUnlockedLevel || level <= 0) {
-            val icon = mainMenu.clickedIcon(motionEvent)
-            if (icon is RestartIcon) {
-                restartLevels()
-                mainMenu.changeLockedLevels(lastUnlockedLevel)
-                mainMenu.invalidate()
-            }
+            clickedRestart(mainMenu, motionEvent)
             return true
         }
 
@@ -47,30 +72,41 @@ class MainMenuViewModel : ViewModel() {
         return true
     }
 
+    private fun clickedRestart(mainMenu: MainMenuView, motionEvent: MotionEvent) {
+        val icon = mainMenu.clickedIcon(motionEvent)
+        if (icon is RestartIcon) {
+            restartLevels()
+            mainMenu.changeLockedLevels(lastUnlockedLevel, getListFinishedLevels())
+            mainMenu.invalidate()
+        }
+    }
+
+
     private fun restartLevels(){
         (1..4).forEach { level ->
-            editSharedPreferences(getSharedPreferences("taskInLevel" + level),
-                "taskInLevel" + level, 0)
+            editSharedPreferences(getSharedPreferences(prefsNameTaskInLevel + level),
+                prefsNameTaskInLevel + level, 0)
         }
 
-        editSharedPreferences(prefsLastUnlockedLevel, "lastUnlockedLevel", 1)
+        editSharedPreferences(prefsLastUnlockedLevel, prefsNameLastUnlocked, 1)
         lastUnlockedLevel = 1
 
-        editSharedPreferences(getSharedPreferences( "newUnlockedLevel"),
-                        "newUnlockedLevel", -1)
+        editSharedPreferences(getSharedPreferences(prefsNameNewUnlocked),
+            prefsNameNewUnlocked, -1)
+        switchBackground()
     }
 
     private fun storeTargetLevelAndTask(level: Int): Int {
-        val prefsContinueOnTaskInChosenLevel = getSharedPreferences("taskInLevel" + level)
-        var continueOnTask = prefsContinueOnTaskInChosenLevel.getInt("taskInLevel" + level, 0)
+        val prefsContinueOnTaskInChosenLevel = getSharedPreferences(prefsNameTaskInLevel + level)
+        var continueOnTask = prefsContinueOnTaskInChosenLevel.getInt(prefsNameTaskInLevel + level, 0)
 
         val numTasksInLevel = getLevel(level).tasks.size
         if (continueOnTask >= numTasksInLevel)
             continueOnTask = numTasksInLevel - 1
 
 
-        editSharedPreferences(prefsLevel, "level", level)
-        editSharedPreferences(prefsTaskInLevel, "taskInLevel", continueOnTask)
+        editSharedPreferences(prefsLevel, prefsNameLevel, level)
+        editSharedPreferences(prefsTaskInLevel, prefsNameTaskInLevel, continueOnTask)
         return continueOnTask
     }
 
@@ -84,23 +120,44 @@ class MainMenuViewModel : ViewModel() {
         return Level1()
     }
 
+
     private fun switchToChosenLevel(level: Int, continueOnTask: Int,
                                     mainMenu: MainMenuView) {
         val taskType1 = getLevel(level).tasks[continueOnTask].first
 
 
-        if (taskType1 == "build") {
+        if (taskType1 == buildTypeTask) {
             switchToBuildEqFragment(mainMenu)
         }
 
-        if (taskType1 == "solve") {
+        if (taskType1 == solveTaskType) {
             switchToSolveEqFragment(mainMenu)
+        }
+    }
+
+    private fun switchToChosenCreateTaskLevel(level: Int, continueOnTask: Int,
+                                    mainMenu: MainMenuView) {
+        val taskType1 = getLevel(level).tasks[continueOnTask].first
+
+
+        if (taskType1 == buildTypeTask) {
+            switchToChooseTypeCreateTaskFragment(mainMenu)
+        }
+
+        if (taskType1 == solveTaskType) {
+            switchToCreateTaskFragment(mainMenu)
         }
     }
 
 
     private fun switchToBuildEqFragment(mainMenu: MainMenuView) {
-        val navController = Navigation.findNavController(mainMenu)
+        var navController : NavController? = null
+        try {
+            navController = Navigation.findNavController(mainMenu)
+        }catch (e : java.lang.Exception){
+            return
+        }
+
         if (navController.currentDestination?.id == R.id.mainMenuFragment) {
             val action = MainMenuFragmentDirections
                 .actionMainMenuToBuildScaleFromEqFragment()
@@ -110,10 +167,46 @@ class MainMenuViewModel : ViewModel() {
     }
 
     private fun switchToSolveEqFragment(mainMenu: MainMenuView) {
-        val navController = Navigation.findNavController(mainMenu)
+        var navController : NavController? = null
+        try {
+            navController = Navigation.findNavController(mainMenu)
+        }catch (e : java.lang.Exception){
+            return
+        }
+
         if (navController.currentDestination?.id == R.id.mainMenuFragment) {
             val action = MainMenuFragmentDirections
                 .actionMainMenuToSolveEquationFragment()
+            Navigation.findNavController(mainMenu).navigate(action)
+        }
+    }
+
+    private fun switchToCreateTaskFragment(mainMenu: MainMenuView) {
+        var navController : NavController? = null
+        try {
+            navController = Navigation.findNavController(mainMenu)
+        }catch (e : java.lang.Exception){
+            return
+        }
+
+        if (navController.currentDestination?.id == R.id.mainMenuFragment) {
+            val action = MainMenuFragmentDirections
+                .actionMainMenuFragmentToCreateTaskFragment()
+            Navigation.findNavController(mainMenu).navigate(action)
+        }
+    }
+
+    private fun switchToChooseTypeCreateTaskFragment(mainMenu: MainMenuView) {
+        var navController : NavController? = null
+        try {
+            navController = Navigation.findNavController(mainMenu)
+        }catch (e : java.lang.Exception){
+            return
+        }
+
+        if (navController.currentDestination?.id == R.id.mainMenuFragment) {
+            val action = MainMenuFragmentDirections
+                .actionMainMenuFragmentToChooseTypeCreateTaskFragment()
             Navigation.findNavController(mainMenu).navigate(action)
         }
     }

@@ -13,7 +13,7 @@ import com.example.vahy.equation.*
 
 
 class HolderOfWeights(context: Context,
-                      private val left : Boolean,
+                      val left : Boolean,
                       private var angle : Float = 0F,
                       dragFrom : Boolean = true, dragTo : Boolean = true) :
     ContainerForEquationBoxes(context, dragFrom, dragTo){
@@ -22,7 +22,7 @@ class HolderOfWeights(context: Context,
     private var defaultHeightScale = 607
     private var widthOfScale = 100
     private var heightOfScale = 100
-    private var heightWithoutBowl = 0
+    var heightWithoutBowl = 0
     private var originalX = 0
     private var originalY = 0
 
@@ -32,17 +32,13 @@ class HolderOfWeights(context: Context,
     private val rDivisor = 192
 
     private val widthOriginalImage = 407
-    private val heightOriginalMenuImage = 485
-    private val heightOriginalImage = 607
-    private val heightWithoutBowlOriginalImage = 492
-    private val heightWithoutBowlOriginalMenuImage = 370
+    private var heightOriginalImage = 607
+    var heightWithoutBowlOriginalImage = 495
 
 
     init {
         z = 2
         defaultSizeValues()
-//        defaultWidthScale = 1000
-//        defaultHeightScale = 607
         widthOfScale = defaultWidthScale
         heightOfScale = defaultHeightScale
         reloadImage(width, height)
@@ -51,12 +47,6 @@ class HolderOfWeights(context: Context,
     }
 
     private fun defaultSizeValues() {
-        if (inMainMenu){
-            width = widthOriginalImage
-            height = heightOriginalMenuImage
-            heightWithoutBowl = heightWithoutBowlOriginalMenuImage
-            return
-        }
         width = widthOriginalImage
         height = heightOriginalImage
         heightWithoutBowl = heightWithoutBowlOriginalImage
@@ -87,8 +77,15 @@ class HolderOfWeights(context: Context,
     }
 
     fun changeSizeInMainMenu(w : Int, h : Int, xStart : Int, yStart : Int){
+        val hPadding = h / 7
+        heightOriginalImage += hPadding
+        height += hPadding
+        defaultHeightScale += hPadding
+
+
         super.sizeChanged(w, h, xStart, yStart)
-        heightWithoutBowl = (height * heightWithoutBowlOriginalMenuImage / heightOriginalMenuImage) * 101 / 100
+        heightWithoutBowlOriginalImage = height * 305 / 400
+        heightWithoutBowl = heightWithoutBowlOriginalImage
         changeSizeInsideObj()
     }
 
@@ -105,10 +102,10 @@ class HolderOfWeights(context: Context,
             heightOfScale -= 5
         }
         width = widthOfScale * width / defaultWidthScale
-        heightWithoutBowl = heightOfScale * heightWithoutBowl / height
+        heightWithoutBowl = heightOfScale * heightWithoutBowlOriginalImage / defaultHeightScale
         height = heightOfScale
         if (left == false) {
-            x = xStart + widthOfScale - x - width
+            x = xStart + widthOfScale - widthOfScale / 90 - width
         }
         originalX = x
         originalY = y
@@ -124,18 +121,17 @@ class HolderOfWeights(context: Context,
         if (biggerNumEquationBoxes < 0) {
             biggerNumEquationBoxes = equationObjectBoxes.size
         }
-        val blockWidth = width / if (biggerNumEquationBoxes <= 0) 1 else biggerNumEquationBoxes
-        val padding = blockWidth * ( biggerNumEquationBoxes - equationObjectBoxes.size) / 2
+        val blockWidth = (width * 95 / 100) / if (biggerNumEquationBoxes <= 0) 1 else biggerNumEquationBoxes
+        val padding = widthOfScale / 200
+        val centre = (biggerNumEquationBoxes - equationObjectBoxes.size) * blockWidth / 2
 
         (0 until equationObjectBoxes.size).forEach { i ->
             equationObjectBoxes[i].sizeChanged(
                 blockWidth, calculateHeightBox(),
-                x + i * width / equationObjectBoxes.size + padding,
+                x + i * width / equationObjectBoxes.size + padding + centre,
                 y + heightWithoutBowl / 3
             )
         }
-        Log.i("velkost", "changeSizeInsideObj holder " +
-                (if (left) "left" else "right") + " : " + biggerNumEquationBoxes)
     }
 
     private fun calculateHeightBox() = heightWithoutBowl * 2 / 3
@@ -192,7 +188,7 @@ class HolderOfWeights(context: Context,
 
     fun setPositionRightHolder() {
         val pos = getPositionRightHolder()
-        x = pos.first + widthOfScale * rMultiple / rDivisor - width
+        x = pos.first + widthOfScale * rMultiple / rDivisor - width + width / 25
         y = pos.second - heightOfScale / 5
     }
 

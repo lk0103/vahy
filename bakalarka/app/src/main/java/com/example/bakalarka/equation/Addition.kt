@@ -1,6 +1,5 @@
 package com.example.vahy.equation
 
-import android.util.Log
 import com.example.bakalarka.equation.Bracket
 
 class Addition(var addends : MutableList<Polynom>) : Polynom(){
@@ -67,6 +66,8 @@ class Addition(var addends : MutableList<Polynom>) : Polynom(){
         addends.forEach {
             if (str.isNotEmpty()){
                 str += if (it is Constant && it.evaluate(mapOf()) < 0) " - " else " + "
+            }else if (str.isEmpty()){
+                str += if (it is Constant && it.evaluate(mapOf()) < 0) "- " else ""
             }
             str += it.toString().replace("-", "")
         }

@@ -9,7 +9,8 @@ import com.example.bakalarka.R
 class RestartIcon(context: Context) : Icon(context) {
 
     init {
-        image = ContextCompat.getDrawable(context, R.drawable.restart)!!.toBitmap()
+        imageType = R.drawable.restart
+        image = ContextCompat.getDrawable(context, imageType)!!.toBitmap()
         width = 300
         height = 300
         image = Bitmap.createScaledBitmap(image!!, width, height, true)

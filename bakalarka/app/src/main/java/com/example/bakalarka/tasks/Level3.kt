@@ -6,8 +6,8 @@ import kotlin.random.Random
 class Level3: Level(){
 
     init {
-        tasks = listOf(task1(), task2(), task3(), task4(), task5(),
-            task6(), task7())
+        tasks = listOf(task1(), task2(), task3(), task4()
+             , task5(),task6(), task7())
     }
 
     fun task1() : Pair<String, EquationsGenerator>{
@@ -43,7 +43,7 @@ class Level3: Level(){
         }
         generator.enableConsRight = true
         generator.enableConsLeft = true
-        generator.rangeVarSolutions = Pair(2, 5)
+        generator.rangeVarSolutions = Pair(2, 4)
 
         return Pair("build", generator)
     }
@@ -72,16 +72,16 @@ class Level3: Level(){
     fun task4() : Pair<String, EquationsGenerator>{
         val generator = EquationsGenerator()
         if (Random.nextInt(2) >= 1) {
-            generator.rangeNumVarLeft = Pair(3, 5)
-            generator.rangeNumVarRight = Pair(1, 3)
-            generator.rangeNumConsRight = Pair(1, 2)
+            generator.rangeNumVarLeft = Pair(3, 4)
+            generator.rangeNumVarRight = Pair(2, 3)
+            generator.rangeNumConsRight = Pair(1, 1)
             generator.rangeNumConsLeft = Pair(1, 1)
             generator.rangeNumNegativeConsLeft = Pair(1, 1)
         }
         else {
-            generator.rangeNumVarRight = Pair(3, 5)
-            generator.rangeNumVarLeft = Pair(1, 3)
-            generator.rangeNumConsLeft = Pair(1, 2)
+            generator.rangeNumVarRight = Pair(3, 4)
+            generator.rangeNumVarLeft = Pair(2, 3)
+            generator.rangeNumConsLeft = Pair(1, 1)
             generator.rangeNumConsRight = Pair(1, 1)
             generator.rangeNumNegativeConsRight = Pair(1, 1)
         }
@@ -106,9 +106,10 @@ class Level3: Level(){
             generator.enableConsLeft = true
         }
         generator.rangeNumVarBracket = Pair(1, 2)
-        generator.rangeSumConsBracket = Pair(2, 8)
-        generator.rangeNumConsBracket = Pair(1, 2)
-        generator.rangeVarSolutions = Pair(1, 3)
+        generator.rangeSumConsBracket = Pair(2, 5)
+        generator.rangeNumConsBracket = Pair(1, 1)
+
+        generator.rangeVarSolutions = Pair(1, 1)
 
         return Pair("build", generator)
     }
@@ -117,19 +118,21 @@ class Level3: Level(){
         val generator = EquationsGenerator()
         if (Random.nextInt(2) >= 1) {
             generator.rangeNumBracketLeft = Pair(2, 3)
+            generator.rangeNumBracketRight = Pair(1, 1)
             generator.rangeNumVarRight = Pair(2, 4)
-            generator.rangeNumConsRight = Pair(1, 2)
+            generator.rangeNumConsRight = Pair(1, 1)
             generator.enableConsRight = true
         }
         else {
             generator.rangeNumBracketRight = Pair(2, 3)
+            generator.rangeNumBracketLeft = Pair(1, 1)
             generator.rangeNumVarLeft= Pair(2, 4)
-            generator.rangeNumConsLeft = Pair(1, 2)
+            generator.rangeNumConsLeft = Pair(1, 1)
             generator.enableConsLeft = true
         }
         generator.rangeNumVarBracket = Pair(1, 3)
         generator.rangeSumConsBracket = Pair(3, 5)
-        generator.rangeNumConsBracket = Pair(1, 2)
+        generator.rangeNumConsBracket = Pair(1, 1)
         generator.rangeVarSolutions = Pair(1, 3)
 
         return Pair("build", generator)

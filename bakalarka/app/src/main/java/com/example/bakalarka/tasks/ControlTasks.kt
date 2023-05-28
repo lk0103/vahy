@@ -1,17 +1,15 @@
 package com.example.bakalarka.tasks
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import com.example.bakalarka.MainActivity
 import com.example.bakalarka.R
 import com.example.bakalarka.equation.SystemOfEquations
-import com.example.bakalarka.ui.main.BuildScaleFromEqFragmentDirections
-import com.example.bakalarka.ui.main.SolveEquationFragmentDirections
-import com.example.bakalarka.ui.main.TaskMainMenuView
+import com.example.bakalarka.ui.main.*
 import com.example.vahy.ScalesView
 
 class ControlTasks {
@@ -20,10 +18,15 @@ class ControlTasks {
     fun generateSystemEq(): SystemOfEquations {
         val switchBetweenTasks = SwitchingBetweenTasks()
         switchBetweenTasks.mainActivity = mainActivity
+
+        if (mainActivity.getCreatedEquation() != null){
+            return mainActivity.getCreatedEquation()!!
+        }
+
         val level = switchBetweenTasks.getLevelInt()
 
-        val prefsTaskInLevel = getSharedPreferences("taskInLevel")
-        val taskInLevel = prefsTaskInLevel.getInt("taskInLevel", 0)
+        val prefsTaskInLevel = getSharedPreferences(prefsNameTaskInLevel)
+        val taskInLevel = prefsTaskInLevel.getInt(prefsNameTaskInLevel, 0)
 
         val levelInfo = switchBetweenTasks.getLevel(level)
         val generator = levelInfo.tasks[taskInLevel].second
@@ -32,50 +35,50 @@ class ControlTasks {
         var sysEq = SystemOfEquations(mutableListOf())
         while (sysEq.solutions.size <= 0 || sysEq.equations.any { !it.leftEqualsRight() }) {
             if (generator is EquationsGenerator)
-                sysEq = generator.generateLinearEquationWithNaturalSolution()
+                sysEq = generator.generateEquationWithNaturalSolution()
             else if (generator is System2EqGenerator)
                 sysEq = generator.generateSystem2DiophantineEquations()
-            Log.i("generate", sysEq.toString())
-            Log.i("generate", sysEq.solutions.toString())
         }
         return sysEq
     }
 
-    fun onTouch(clickedView: View, event: MotionEvent, scalesView: ScalesView) : Boolean{
+    fun onTouchMainMenu(clickedView: View, event: MotionEvent, scalesView: ScalesView) : Boolean{
         clickedView.onTouchEvent(event)
-//        if (clickedView is TaskMainMenuView && clickedView.restoreOriginalEquation){
-//            restoreOriginalEquation(clickedView, scalesView)
-//            return true
-//        }
+        if (clickedView !is TaskMenuView)
+            return true
 
-        if (clickedView is TaskMainMenuView && clickedView.previousEquation
-            && !scalesView.isRotating){
+        mainActivity.deleteCreatedEquation()
+
+        if (clickedView.previousEquation && !scalesView.isRotating){
             previousEquation(clickedView, scalesView)
             return true
         }
 
-        if (clickedView is TaskMainMenuView && clickedView.leaveTask){
+        if (clickedView.leaveTask){
             leaveTask(clickedView)
             return true
         }
+
+        if (clickedView.goBackToChooseType){
+            goBackToChooseTypeCreateTask(clickedView)
+            return true
+        }
+
+        if (clickedView.createTask)
+            switchToCreateTask(clickedView)
+
         return true
     }
 
 
-    fun previousEquation(clickedView: TaskMainMenuView, scalesView: ScalesView){
+    fun previousEquation(clickedView: TaskMenuView, scalesView: ScalesView){
         clickedView.previousEquation = false
-//        clickedView.restoreOriginalEquation = false
         scalesView.previousEquation()
     }
 
-//    fun restoreOriginalEquation(clickedView: TaskMainMenuView, scalesView: ScalesView){
-//        clickedView.restoreOriginalEquation = false
-//        clickedView.previousEquation = false
-//        scalesView.restoreOriginalEquation()
-//    }
 
-    fun leaveTask(clickedView: TaskMainMenuView) {
-        clickedView.previousEquation = false
+    fun leaveTask(clickedView: TaskMenuView) {
+        clickedView.leaveTask = false
         val navController = Navigation.findNavController(clickedView)
         if (navController.currentDestination?.id == R.id.buildScaleFromEqFragment) {
             switchBuildToMainMenuFragment(clickedView)
@@ -83,23 +86,125 @@ class ControlTasks {
         else if (navController.currentDestination?.id == R.id.solveEquationFragment) {
             switchSolveToMainMenuFragment(clickedView)
         }
+        else if (navController.currentDestination?.id == R.id.createTaskFragment) {
+            switchCreateTaskToMainMenuFragment(clickedView)
+        }
+        else if (navController.currentDestination?.id == R.id.chooseTypeCreateTaskFragment) {
+            switchChooseCreateTaskToMainMenuFragment(clickedView)
+        }
+    }
+
+    private fun goBackToChooseTypeCreateTask(clickedView: TaskMenuView) {
+        clickedView.goBackToChooseType = false
+        val navController = Navigation.findNavController(clickedView)
+        if (navController.currentDestination?.id == R.id.createTaskFragment) {
+            switchCreateTaskToChooseTypeCreateTask(clickedView)
+        }
+    }
+
+    private fun switchToCreateTask(clickedView: TaskMenuView) {
+        clickedView.createTask = false
+        val navController = Navigation.findNavController(clickedView)
+        if (navController.currentDestination?.id == R.id.buildScaleFromEqFragment) {
+            switchBuildToChooseTypeCreateTaskFragment(clickedView)
+        }
+        else if (navController.currentDestination?.id == R.id.solveEquationFragment) {
+            switchSolveToCreateTaskFragment(clickedView)
+        }
     }
 
 
     private fun switchBuildToMainMenuFragment(view : View) {
         val navController = Navigation.findNavController(view)
         if (navController.currentDestination?.id == R.id.buildScaleFromEqFragment) {
-            val action = BuildScaleFromEqFragmentDirections
+            val action = BuildScaleFragmentDirections
                 .actionBuildScaleFromEqFragmentToMainMenu()
             Navigation.findNavController(view).navigate(action)
         }
     }
 
-    private fun switchSolveToMainMenuFragment(view : TaskMainMenuView) {
+    private fun switchSolveToMainMenuFragment(view : TaskMenuView) {
         val navController = Navigation.findNavController(view)
         if (navController.currentDestination?.id == R.id.solveEquationFragment) {
             val action = SolveEquationFragmentDirections
                 .actionSolveEquationFragmentToMainMenu()
+            Navigation.findNavController(view).navigate(action)
+        }
+    }
+
+    private fun switchCreateTaskToMainMenuFragment(view: View) {
+        var navController : NavController? = null
+        try {
+            navController = Navigation.findNavController(view)
+        }catch (e : java.lang.Exception){
+            return
+        }
+
+        if (navController.currentDestination?.id == R.id.createTaskFragment) {
+            val action = CreateTaskFragmentDirections
+                .actionCreateTaskFragmentToMainMenuFragment()
+            Navigation.findNavController(view).navigate(action)
+        }
+    }
+
+
+    private fun switchChooseCreateTaskToMainMenuFragment(view: View) {
+        var navController : NavController? = null
+        try {
+            navController = Navigation.findNavController(view)
+        }catch (e : java.lang.Exception){
+            return
+        }
+
+        if (navController.currentDestination?.id == R.id.chooseTypeCreateTaskFragment) {
+            val action = ChooseTypeCreateTaskFragmentDirections
+                .actionChooseTypeCreateTaskFragmentToMainMenuFragment()
+            Navigation.findNavController(view).navigate(action)
+        }
+    }
+
+
+    private fun switchSolveToCreateTaskFragment(view: View) {
+        var navController : NavController? = null
+        try {
+            navController = Navigation.findNavController(view)
+        }catch (e : java.lang.Exception){
+            return
+        }
+
+        if (navController.currentDestination?.id == R.id.solveEquationFragment) {
+            val action = SolveEquationFragmentDirections
+                .actionSolveEquationFragmentToCreateTaskFragment()
+            Navigation.findNavController(view).navigate(action)
+        }
+    }
+
+    private fun switchBuildToChooseTypeCreateTaskFragment(view: View) {
+        var navController : NavController? = null
+        try {
+            navController = Navigation.findNavController(view)
+        }catch (e : java.lang.Exception){
+            return
+        }
+
+        if (navController.currentDestination?.id == R.id.buildScaleFromEqFragment) {
+            val action = BuildScaleFragmentDirections
+                .actionBuildScaleFromEqFragmentToChooseTypeCreateTaskFragment()
+            Navigation.findNavController(view).navigate(action)
+        }
+    }
+
+    private fun switchCreateTaskToChooseTypeCreateTask(view: View) {
+        var navController : NavController? = null
+        try {
+            navController = Navigation.findNavController(view)
+        }catch (e : java.lang.Exception){
+            return
+        }
+
+        if (navController.currentDestination?.id == R.id.createTaskFragment) {
+            val action = CreateTaskFragmentDirections
+                .actionCreateTaskFragmentToChooseTypeCreateTaskFragment()
             Navigation.findNavController(view).navigate(action)
         }
     }

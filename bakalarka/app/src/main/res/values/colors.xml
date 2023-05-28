@@ -21,8 +21,10 @@
     <color name="level4_background">#D2F1D2</color>
     <color name="main_menu_background">#C2DFE8</color>
 
+    <color name="border_for_scale_icon">#858A8A</color>
+
     <color name="equationStringBg">#AEDDD4</color>
 
-    <color name="task_menu_background">#FFFFFF</color>
+    <color name="task_menu_top">#8AB0BC</color>
 
 </resources>

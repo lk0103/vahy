@@ -29,5 +29,3 @@ class Ball(private val context: Context, value : Int,
     override fun evaluate(): Int = value
 
 }
-
-fun Ball.getWidth(): Int = width

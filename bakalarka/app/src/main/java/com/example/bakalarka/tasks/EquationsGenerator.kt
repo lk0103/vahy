@@ -32,7 +32,7 @@ class EquationsGenerator : Generator(){
 
     private val variable = "x"
 
-    fun generateLinearEquationWithNaturalSolution(): SystemOfEquations {
+    fun generateEquationWithNaturalSolution(): SystemOfEquations {
         val (left, right) = createLeftRightSidesEq()
         if (Equation(left, right).hasSameNumOfVarOnBothSides()) {
             return SystemOfEquations(mutableListOf())
@@ -45,6 +45,10 @@ class EquationsGenerator : Generator(){
         val systemOfEquations = SystemOfEquations(mutableListOf(eq))
         systemOfEquations.equations.forEach { it.simplify() }
         systemOfEquations.solve()
+
+        if (systemOfEquations.notOneSolution())
+            return SystemOfEquations(mutableListOf())
+
         return systemOfEquations
     }
 
@@ -55,8 +59,9 @@ class EquationsGenerator : Generator(){
         var solutions = randomSolution()
         var eq: Equation? = null
         for (i in 0 until 100) {
-            eq = generateLinearEquation(left, right, solutions)
+            eq = generateEquation(left, right, solutions)
             eq?.setSolution(solutions.toMutableMap())
+
             if (eq != null && eq.compareLeftRight() == 0) {
                 Log.i("generate", "pocet generovani: " + (i + 1))
                 break
@@ -96,8 +101,8 @@ class EquationsGenerator : Generator(){
         return Pair(left, right)
     }
 
-    private fun generateLinearEquation(left : Addition, right : Addition,
-                            solutions : Map<String, Int>): Equation? {
+    private fun generateEquation(left : Addition, right : Addition,
+                                 solutions : Map<String, Int>): Equation? {
         val numNegativeLeft = randomBetweenMinMax(rangeNumNegativeConsLeft.first, rangeNumNegativeConsLeft.second)
         val numNegativeRight = randomBetweenMinMax(rangeNumNegativeConsRight.first, rangeNumNegativeConsRight.second)
 
@@ -108,9 +113,6 @@ class EquationsGenerator : Generator(){
 
         var (consLeft, consRight, rightConfig) = generateCons(l, r, solutions,
             rangeNumConsLeft, rangeNumConsRight, enableConsLeft, enableConsRight)
-
-//        consLeft = createNegativeConstants(consLeft, numNegativeLeft)
-//        consRight = createNegativeConstants(consRight, numNegativeRight)
 
         if (rightConfig) {
             l = Addition((l.addends + consLeft).toMutableList())
@@ -157,19 +159,4 @@ class EquationsGenerator : Generator(){
         return (0 until numNegative).map { -Random.nextInt(2, 10) }
             .map { Constant(it) }.toMutableList()
     }
-
-//    private fun createNegativeConstants(constants : MutableList<Constant>, numNegative: Int)
-//                                            : MutableList<Constant>{
-//        val sum = constants.map { it.evaluate(mapOf()) }.sum()
-//        constants.shuffle()
-//        (0 until Math.min(constants.size, numNegative)).forEach { i ->
-//            constants[i].makeNegative()
-//        }
-//        val positive = constants.filter { it.evaluate(mapOf()) > 0 }
-//        while (positive.map { it.evaluate(mapOf()) }.sum() != sum){
-//            val i = Random.nextInt(positive.size)
-//            positive[i].increment()
-//        }
-//        return constants
-//    }
 }

@@ -33,8 +33,6 @@ class BallonBox : EquationObjectBox() {
         super.addObject(obj)
     }
 
-
-
     override fun calculatePositions() {
         val yBottom = y + height
         val yDelta = heightEqObj * 17 / 40
@@ -68,6 +66,4 @@ class BallonBox : EquationObjectBox() {
             }
         }
     }
-
-
 }

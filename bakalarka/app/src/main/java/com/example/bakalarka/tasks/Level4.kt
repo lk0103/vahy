@@ -5,8 +5,8 @@ import kotlin.random.Random
 class Level4 : Level(){
 
     init {
-        tasks = listOf(task1(), task2(), task3(), task4(), task5(),
-            task6(), task7())
+        tasks = listOf(task1(), task2(), task3(), task4()
+            , task5(), task6(), task7())
     }
 
     fun task1() : Pair<String, System2EqGenerator>{
@@ -35,7 +35,7 @@ class Level4 : Level(){
             generator.enableConsLeft[1] = true
         }
 
-        generator.rangeVarSolutions = listOf(Pair(2, 5), Pair(1, 3))
+        generator.rangeVarSolutions = listOf(Pair(2, 6), Pair(1, 6))
 
         return Pair("solve", generator)
     }
@@ -91,7 +91,7 @@ class Level4 : Level(){
             generator.enableConsLeft[1] = true
         }
 
-        generator.rangeVarSolutions = listOf(Pair(1, 3), Pair(1, 3))
+        generator.rangeVarSolutions = listOf(Pair(1, 5), Pair(1, 5))
 
         return Pair("solve", generator)
     }
@@ -118,7 +118,7 @@ class Level4 : Level(){
             generator.enableConsLeft[1] = true
         }
 
-        generator.rangeVarSolutions = listOf(Pair(3, 5), Pair(3, 5))
+        generator.rangeVarSolutions = listOf(Pair(3, 8), Pair(3, 6))
 
         return Pair("solve", generator)
     }
@@ -128,29 +128,29 @@ class Level4 : Level(){
         val generator = System2EqGenerator()
         if (Random.nextInt(2) >= 1) {
             generator.rangeNumVarLeft1 = mutableListOf(Pair(1, 1), Pair(1, 2))
-            generator.rangeNumVarRight1 = mutableListOf(Pair(0, 0), Pair(2, 3))
+            generator.rangeNumVarRight1 = mutableListOf(Pair(0, 0), Pair(1, 3))
             generator.rangeNumConsRight[0] = Pair(1, 2)
             generator.enableConsRight[0] = true
         } else {
             generator.rangeNumVarRight1 = mutableListOf(Pair(1, 1), Pair(1, 2))
-            generator.rangeNumVarLeft1 = mutableListOf(Pair(0, 0), Pair(2, 3))
+            generator.rangeNumVarLeft1 = mutableListOf(Pair(0, 0), Pair(1, 3))
             generator.rangeNumConsLeft[0] = Pair(1, 2)
             generator.enableConsLeft[0] = true
         }
 
         if (Random.nextInt(2) >= 1) {
             generator.rangeNumVarLeft2 = mutableListOf(Pair(2, 3), Pair(0, 1))
-            generator.rangeNumVarRight2 = mutableListOf(Pair(0, 0), Pair(1, 2))
+            generator.rangeNumVarRight2 = mutableListOf(Pair(0, 0), Pair(1, 3))
             generator.rangeNumConsRight[1] = Pair(1, 2)
             generator.enableConsRight[1] = true
         } else {
             generator.rangeNumVarRight2 = mutableListOf(Pair(2, 3), Pair(0, 1))
-            generator.rangeNumVarLeft2 = mutableListOf(Pair(0, 0), Pair(1, 2))
+            generator.rangeNumVarLeft2 = mutableListOf(Pair(0, 0), Pair(1, 3))
             generator.rangeNumConsLeft[1] = Pair(1, 2)
             generator.enableConsLeft[1] = true
         }
 
-        generator.rangeVarSolutions = listOf(Pair(2, 6), Pair(5, 10))
+        generator.rangeVarSolutions = listOf(Pair(2, 6), Pair(5, 11))
         return Pair("solve", generator)
     }
 
@@ -179,7 +179,7 @@ class Level4 : Level(){
             generator.enableConsLeft[1] = true
         }
 
-        generator.rangeVarSolutions = listOf(Pair(2, 6), Pair(5, 10))
+        generator.rangeVarSolutions = listOf(Pair(2, 6), Pair(4, 10))
         return Pair("solve", generator)
     }
 
