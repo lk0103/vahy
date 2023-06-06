@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/mainMenuFragment"
-        android:name="com.example.bakalarka.ui.main.MainMenuFragment"
+        android:name="com.vahy.bakalarka.ui.main.MainMenuFragment"
         android:label="ScalesFragment" >
         <action
             android:id="@+id/action_main_menu_to_solveEquationFragment"
@@ -25,7 +25,7 @@
 
     <fragment
         android:id="@+id/solveEquationFragment"
-        android:name="com.example.bakalarka.ui.main.SolveEquationFragment"
+        android:name="com.vahy.bakalarka.ui.main.SolveEquationFragment"
         android:label="SolveEquationFragment" >
         <action
             android:id="@+id/action_solveEquationFragment_to_buildScaleFromEqFragment"
@@ -42,7 +42,7 @@
     </fragment>
     <fragment
         android:id="@+id/buildScaleFromEqFragment"
-        android:name="com.example.bakalarka.ui.main.BuildScaleFragment"
+        android:name="com.vahy.bakalarka.ui.main.BuildScaleFragment"
         android:label="BuildScaleFromEqFragment" >
         <action
             android:id="@+id/action_buildScaleFromEqFragment_to_solveEquationFragment"
@@ -59,7 +59,7 @@
     </fragment>
     <fragment
         android:id="@+id/createTaskFragment"
-        android:name="com.example.bakalarka.ui.main.CreateTaskFragment"
+        android:name="com.vahy.bakalarka.ui.main.CreateTaskFragment"
         android:label="CreateTaskFragment" >
         <action
             android:id="@+id/action_createTaskFragment_to_solveEquationFragment"
@@ -76,7 +76,7 @@
     </fragment>
     <fragment
         android:id="@+id/chooseTypeCreateTaskFragment"
-        android:name="com.example.bakalarka.ui.main.ChooseTypeCreateTaskFragment"
+        android:name="com.vahy.bakalarka.ui.main.ChooseTypeCreateTaskFragment"
         android:label="ChooseTypeCreateTaskFragment" >
         <action
             android:id="@+id/action_chooseTypeCreateTaskFragment_to_createTaskFragment"

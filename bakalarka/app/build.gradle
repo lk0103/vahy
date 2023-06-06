@@ -11,11 +11,11 @@ android {
         dataBinding = true
         viewBinding true
     }
-    namespace 'com.example.bakalarka'
+    namespace 'com.vahy.bakalarka'
     compileSdk 32
 
     defaultConfig {
-        applicationId "com.example.bakalarka"
+        applicationId "com.vahy.bakalarka"
         minSdk 21
         targetSdk 32
         versionCode 1

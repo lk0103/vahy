@@ -7,7 +7,7 @@
     <data>
         <variable
             name = "myViewModel"
-            type = "com.example.bakalarka.ui.main.MainMenuViewModel" />
+            type = "com.vahy.bakalarka.ui.main.MainMenuViewModel" />
     </data>
 
 
@@ -18,7 +18,7 @@
         tools:context=".ui.main.SolveEquationFragment"
         android:background="@color/white">
 
-        <com.example.bakalarka.ui.main.BackgroundView
+        <com.vahy.bakalarka.ui.main.BackgroundView
             android:id="@+id/backgroundView"
             android:layout_width="0dp"
             android:layout_height="0dp"
@@ -29,7 +29,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.0" />
 
-        <com.example.bakalarka.ui.main.MainMenuView
+        <com.vahy.bakalarka.ui.main.MainMenuView
             android:id="@+id/MainMenuView"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"

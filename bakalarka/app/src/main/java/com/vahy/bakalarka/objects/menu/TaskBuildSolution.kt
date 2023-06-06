@@ -1,0 +1,139 @@
+package com.vahy.bakalarka.objects.menu
+
+import android.content.Context
+import android.graphics.*
+import com.vahy.bakalarka.equation.Equation
+import com.vahy.vahy.objects.ScreenObject
+
+
+class TaskBuildSolution(private val context: Context,
+                        private var equations : List<Equation> = listOf())
+    : ScreenObject(false, false) {
+    private var blocks = 1
+    private var indexMarked = -1
+    private var equationsBlocks : MutableList<EquationStringBlock> = mutableListOf()
+
+    init {
+        width = 10
+        height = 10
+        blocks = equations.size
+        equations.forEach { eq ->
+            equationsBlocks.add(EquationStringBlock(context, eq.toString()))
+        }
+    }
+
+    override fun sizeChanged(w: Int, h: Int, xStart: Int, yStart: Int) {
+        width = w
+        height = h
+        x = xStart
+        y = yStart
+
+        changeSizeObjects()
+    }
+
+    private fun changeSizeObjects() {
+        var heightRow = height / blocks
+        var widthRow = width
+        if (vertical() < horizontal()) {
+            heightRow = height
+            widthRow = width / blocks
+        }
+        (0 until blocks).forEach { i ->
+            val yText = if (heightRow == height) y + heightRow / 2F + heightRow / 10F
+            else y + heightRow * i + heightRow / 2F + heightRow / 10F
+            val xText = if (widthRow == width) x + widthRow / 2F
+            else x + widthRow * i + widthRow / 2F
+            equationsBlocks[i].textSize = calculateTextSize(heightRow, widthRow, i)
+            equationsBlocks[i].sizeChanged(widthRow, heightRow, xText.toInt(), yText.toInt())
+        }
+    }
+
+    override fun draw(canvas: Canvas, paint: Paint){
+        equationsBlocks.forEach { it.draw(canvas, paint) }
+    }
+
+
+    private fun vertical(): Float {
+        val heightRow = height / blocks
+        val widthRow = width
+        return smallestTextSize(heightRow, widthRow)
+    }
+
+    private fun horizontal(): Float {
+        val heightRow = height
+        val widthRow = width / blocks - width / 50
+        return smallestTextSize(heightRow, widthRow)
+    }
+
+    private fun smallestTextSize(heightRow: Int, widthRow: Int): Float {
+        var smallestTextSize = heightRow / 2F + 1
+        (0 until blocks).forEach { i ->
+            val textSize = calculateTextSize(heightRow, widthRow, i)
+            if (smallestTextSize > textSize) {
+                smallestTextSize = textSize
+            }
+        }
+        return smallestTextSize
+    }
+
+
+    private fun calculateTextSize(heightRow: Int, widthRow: Int, i: Int) : Float{
+        val paint = Paint()
+        paint.textSize = heightRow / 2F
+        val eqStr = equations[i].toString()
+
+        val bounds = Rect()
+        paint.getTextBounds(eqStr, 0, eqStr.length, bounds)
+
+        while (bounds.width() > widthRow * 9 / 10) {
+            paint.textSize -= 2F
+            paint.getTextBounds(eqStr, 0, eqStr.length, bounds)
+        }
+        return paint.textSize
+    }
+
+    fun getIndexTouchedEquation(x1 : Int, y1 : Int) : Int{
+        if (equations.size < 2)
+            return -1
+
+        (0 until blocks).forEach { i ->
+            if (equationsBlocks[i].isIn(x1, y1))
+                return i
+        }
+        return -1
+    }
+
+    fun setIndexMarked(ix : Int) : Boolean{
+        if (indexMarked != ix) {
+            indexMarked = ix
+            (0 until blocks).forEach { i ->
+                equationsBlocks[i].isMarked = (i == ix)
+            }
+            return true
+        }
+        return false
+    }
+
+    fun setEquations(eq : List<Equation>){
+        equations = eq
+        blocks = equations.size
+
+        equationsBlocks = mutableListOf()
+        equations.forEach { eq ->
+            equationsBlocks.add(EquationStringBlock(context, eq.toString()))
+        }
+        if (equations.size > 1)
+            setIndexMarked(0)
+    }
+
+    fun updateEquations(eq : List<Equation>){
+        equations = eq
+        blocks = equations.size
+
+        (0 until eq.size).forEach { i ->
+            equationsBlocks[i].changeEquation(equations[i].toString())
+        }
+    }
+
+    fun getEquations() : List<Equation> = equations
+}

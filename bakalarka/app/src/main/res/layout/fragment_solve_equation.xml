@@ -7,7 +7,7 @@
     <data>
         <variable
             name = "myViewModel"
-            type = "com.example.bakalarka.ui.main.SolveEquationViewModel" />
+            type = "com.vahy.bakalarka.ui.main.SolveEquationViewModel" />
     </data>
 
 
@@ -18,7 +18,7 @@
         tools:context=".ui.main.SolveEquationFragment"
         android:background="@color/white">
 
-        <com.example.bakalarka.ui.main.BackgroundView
+        <com.vahy.bakalarka.ui.main.BackgroundView
             android:id="@+id/backgroundViewSolve"
             android:layout_width="0dp"
             android:layout_height="0dp"
@@ -29,7 +29,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.0" />
 
-        <com.example.bakalarka.ui.main.SolveEquationMenuView
+        <com.vahy.bakalarka.ui.main.SolveEquationMenuView
             android:id="@+id/TaskSolveEquationView"
             android:layout_width="300dp"
             android:layout_height="84dp"
@@ -42,7 +42,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.0" />
 
-        <com.example.bakalarka.ui.main.TaskMenuView
+        <com.vahy.bakalarka.ui.main.TaskMenuView
             android:id="@+id/TaskMainMenuView"
             android:layout_width="430dp"
             android:layout_height="84dp"
@@ -58,11 +58,11 @@
             app:layout_constraintVertical_bias="0.0" />
 
 
-        <com.example.vahy.ScalesView
+        <com.vahy.vahy.ScalesView
             android:id="@+id/ScalesView"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="2dp"
             android:layout_marginTop="100dp"
             android:layout_marginEnd="8dp"
             android:layout_marginBottom="8dp"
